@@ -1,14 +1,10 @@
 #include "plan_env/edt_environment.h"
 
-namespace dyn_planner
-{
+namespace dyn_planner{
 /* ============================== edt_environment ============================== */
-void EDTEnvironment::init()
-{
-}
+void EDTEnvironment::init(){}
 
-void EDTEnvironment::setMap(shared_ptr<SDFMap> map)
-{
+void EDTEnvironment::setMap(shared_ptr<SDFMap> map){
   EDTEnv_mode = LOCAL_MODE;
   this->sdf_map_ = map;
   resolution_inv_ = 1 / sdf_map_->getResolution();
@@ -24,8 +20,7 @@ void EDTEnvironment::setMap(shared_ptr<SDFMap_Global> map){
 }
 
 void EDTEnvironment::evaluateEDTWithGrad(const Eigen::Vector3d& pos, const double& time, double& dist,
-                                         Eigen::Vector3d& grad)
-{
+                                         Eigen::Vector3d& grad){
   if(EDTEnv_mode == LOCAL_MODE){
       vector<Eigen::Vector3d> pos_vec;
       Eigen::Vector3d diff;
@@ -36,8 +31,7 @@ void EDTEnvironment::evaluateEDTWithGrad(const Eigen::Vector3d& pos, const doubl
       Eigen::Vector3d pt;
       for (int x = 0; x < 2; x++)
           for (int y = 0; y < 2; y++)
-              for (int z = 0; z < 2; z++)
-              {
+              for (int z = 0; z < 2; z++){
                   pt = pos_vec[4 * x + 2 * y + z];
                   double d1 = sdf_map_->getDistance(pt);
                   values[x][y][z] = d1;
@@ -73,8 +67,7 @@ void EDTEnvironment::evaluateEDTWithGrad(const Eigen::Vector3d& pos, const doubl
   }
 
 
-double EDTEnvironment::evaluateCoarseEDT(const Eigen::Vector3d& pos, const double& time)
-{
+double EDTEnvironment::evaluateCoarseEDT(const Eigen::Vector3d& pos, const double& time){
   if(EDTEnv_mode == 0){
       double d1 = sdf_map_->getDistance(pos);
       return d1;
@@ -85,7 +78,6 @@ double EDTEnvironment::evaluateCoarseEDT(const Eigen::Vector3d& pos, const doubl
       printf("mode error!!\n");
       return -1.0;
   }
-
 }
 
 // jiangtao add

@@ -2,7 +2,9 @@
 <package format="2">
   <name>plan_env</name>
   <version>1.0.0</version>
-  <description>The plan_env package</description>
+  <description>
+    The plan_env package
+  </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -51,21 +53,24 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>octomap_ros</build_depend>
-  <build_depend>octomap_msgs</build_depend>
+  <build_depend>octomap</build_depend>
+  <build_depend>sdf_tools</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>tf</build_export_depend>
   <build_export_depend>octomap_ros</build_export_depend>
-  <build_export_depend>octomap_msgs</build_export_depend>
+  <build_export_depend>octomap</build_export_depend>
+    <build_export_depend>sdf_tools</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
     <exec_depend>octomap_ros</exec_depend>
-  <exec_depend>octomap_msgs</exec_depend>
+  <exec_depend>octomap</exec_depend>
+    <exec_depend>sdf_tools</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

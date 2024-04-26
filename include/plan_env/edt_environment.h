@@ -18,10 +18,8 @@ using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
 
-namespace dyn_planner
-{
-class EDTEnvironment
-{
+namespace dyn_planner{
+class EDTEnvironment{
    enum SDF_MODE{
      LOCAL_MODE=0, 
      GLOBAL_MODE
@@ -96,7 +94,7 @@ public:
     } 
   }
 
-  void set_mode(int mode){ EDTEnv_mode=mode; }
+  void set_mode(int mode){ EDTEnv_mode=mode;}
 
     //  jiangtao add
 //    bool get_push_force(const Eigen::Matrix<double, 3, 1> current_odom, const double distance,
