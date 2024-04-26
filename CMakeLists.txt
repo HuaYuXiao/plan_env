@@ -61,7 +61,7 @@ target_link_libraries(plan_env
     ${catkin_LIBRARIES} 
     ${PCL_LIBRARIES}
     ${OpenCV_LIBS}
-        ${OCTOMAP_LIBRARIES}
+#        ${OCTOMAP_LIBRARIES}
         ${Boost_LIBRARIES}
     )  
 
