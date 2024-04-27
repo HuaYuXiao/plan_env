@@ -6,10 +6,11 @@ ADD_COMPILE_OPTIONS(-std=c++14 )
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
-set(CMAKE_PREFIX_PATH /opt/ros/noetic;/usr/local;$ENV{HOME}/Prometheus/devel/;$ENV{HOME}/planner_ws/devel;$ENV{HOME}/mapping_ws/devel;$ENV{HOME}/tool_ws/devel)
+set(CMAKE_PREFIX_PATH /opt/ros/noetic;/usr/local;$ENV{HOME}/Prometheus/devel/;$ENV{HOME}/planner_ws/devel;$ENV{HOME}/mapping_ws/devel;$ENV{HOME}/mapping_ws/devel_isolated;$ENV{HOME}/tool_ws/devel)
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 find_package(OpenCV REQUIRED)
+find_package(octomap REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -18,8 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   message_filters
         tf
-#        octomap_ros
-#        octomap
         sdf_tools
 )
 find_package(Eigen3 REQUIRED)
@@ -29,7 +28,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES plan_env
- CATKIN_DEPENDS roscpp std_msgs tf sdf_tools # octomap_ros octomap
+ CATKIN_DEPENDS roscpp std_msgs tf sdf_tools
  DEPENDS OpenCV
 #  DEPENDS system_lib
 )
@@ -42,12 +41,13 @@ include_directories(
     ${PCL_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
-#        ${OCTOMAP_INCLUDE_DIRS}
+        ${OCTOMAP_INCLUDE_DIRS}
+        $ENV{HOME}/mapping_ws/devel/include/
         ${sdf_tools_INCLUDE_DIRS}
 )
 
 link_directories(${PCL_LIBRARY_DIRS})
-#link_libraries(${OCTOMAP_LIBRARIES})
+link_libraries(${OCTOMAP_LIBRARIES})
 
 add_library(plan_env
         src/sdf_map.cpp
@@ -61,7 +61,7 @@ target_link_libraries(plan_env
     ${catkin_LIBRARIES} 
     ${PCL_LIBRARIES}
     ${OpenCV_LIBS}
-#        ${OCTOMAP_LIBRARIES}
+        ${OCTOMAP_LIBRARIES}
         ${Boost_LIBRARIES}
     )  
 
@@ -78,4 +78,5 @@ add_executable(obj_generator
 )
 target_link_libraries(obj_generator 
     ${catkin_LIBRARIES}
+        ${OCTOMAP_LIBRARIES}
     )
