@@ -3,8 +3,7 @@
 // #define current_img_ md_.depth_image_[image_cnt_ & 1]
 // #define last_img_ md_.depth_image_[!(image_cnt_ & 1)]
 
-void GridMap::initMap(ros::NodeHandle &nh)
-{
+void GridMap::initMap(ros::NodeHandle &nh){
   node_ = nh;
 
   /* get parameter */
@@ -20,7 +19,7 @@ void GridMap::initMap(ros::NodeHandle &nh)
   node_.param("grid_map/local_update_range_y", mp_.local_update_range_(1), -1.0);
   node_.param("grid_map/local_update_range_z", mp_.local_update_range_(2), -1.0);
   // 膨胀距离
-  node_.param("grid_map/obstacles_inflation", mp_.obstacles_inflation_, -1.0);
+  node_.param("grid_map/obstacles_inflation", mp_.obstacles_inflation_, 0.3);
   // 相机参数
   node_.param("grid_map/fx", mp_.fx_, -1.0);
   node_.param("grid_map/fy", mp_.fy_, -1.0);
@@ -51,7 +50,7 @@ void GridMap::initMap(ros::NodeHandle &nh)
   node_.param("grid_map/show_occ_time", mp_.show_occ_time_, false);
   node_.param("grid_map/pose_type", mp_.pose_type_, 1);
 
-  node_.param("grid_map/frame_id", mp_.frame_id_, string("world"));
+  node_.param("grid_map/frame_id", mp_.frame_id_, string("map"));
   // 地图边缘
   node_.param("grid_map/local_map_margin", mp_.local_map_margin_, 1);
   // 地面高度
@@ -59,26 +58,13 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
   node_.param("grid_map/odom_depth_timeout", mp_.odom_depth_timeout_, 1.0);
 
-  if( mp_.virtual_ceil_height_ - mp_.ground_height_ > z_size)
-  {
+  if( mp_.virtual_ceil_height_ - mp_.ground_height_ > z_size){
     // 天花板高度 = 地面高度 + z_size
     mp_.virtual_ceil_height_ = mp_.ground_height_ + z_size;
   }
 
   mp_.resolution_inv_ = 1 / mp_.resolution_;
-  //todo: different map origin
-  if(uav_id==1)
-  {
     mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
-  }
-  else if(uav_id==2)
-  {
-    mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
-  }
-  else
-  {
-    mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
-  }
   mp_.map_size_ = Eigen::Vector3d(x_size, y_size, z_size);
 
   //logit(x) (log((x) / (1 - (x))))
@@ -126,14 +112,14 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
   /* init callback */
 
-  depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(node_, "grid_map/depth", 50));
+  depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(node_, "/camera/depth/image_raw", 50));
   // 相机外参
   extrinsic_sub_ = node_.subscribe<nav_msgs::Odometry>("/vins_estimator/extrinsic", 10, &GridMap::extrinsicCallback, this); //sub
 
   if (mp_.pose_type_ == POSE_STAMPED)
   {
     pose_sub_.reset(
-        new message_filters::Subscriber<geometry_msgs::PoseStamped>(node_, "grid_map/pose", 25));
+        new message_filters::Subscriber<geometry_msgs::PoseStamped>(node_, "/grid_map/pose", 25));
 
     sync_image_pose_.reset(new message_filters::Synchronizer<SyncPolicyImagePose>(
         SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
@@ -141,7 +127,7 @@ void GridMap::initMap(ros::NodeHandle &nh)
   }
   else if (mp_.pose_type_ == ODOMETRY)
   {
-    odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(node_, "grid_map/odom", 100, ros::TransportHints().tcpNoDelay()));
+    odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(node_, "/grid_map/odom", 100, ros::TransportHints().tcpNoDelay()));
 
     sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(
         SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
@@ -150,15 +136,15 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
   // use odometry and point cloud
   indep_cloud_sub_ =
-      node_.subscribe<sensor_msgs::PointCloud2>("grid_map/cloud", 10, &GridMap::cloudCallback, this);
+      node_.subscribe<sensor_msgs::PointCloud2>("/grid_map/cloud", 10, &GridMap::cloudCallback, this);
   indep_odom_sub_ =
-      node_.subscribe<nav_msgs::Odometry>("grid_map/odom", 10, &GridMap::odomCallback, this);
+      node_.subscribe<nav_msgs::Odometry>("/grid_map/odom", 10, &GridMap::odomCallback, this);
 
   occ_timer_ = node_.createTimer(ros::Duration(0.05), &GridMap::updateOccupancyCallback, this);
   vis_timer_ = node_.createTimer(ros::Duration(0.11), &GridMap::visCallback, this);
 
-  map_pub_ = node_.advertise<sensor_msgs::PointCloud2>("grid_map/occupancy", 10);
-  map_inf_pub_ = node_.advertise<sensor_msgs::PointCloud2>("grid_map/occupancy_inflate", 10);
+  map_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/grid_map/occupancy", 10);
+  map_inf_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/grid_map/occupancy_inflate", 10);
 
   md_.occ_need_update_ = false;
   md_.local_updated_ = false;
