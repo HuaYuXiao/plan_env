@@ -224,7 +224,7 @@ namespace dyn_planner {
         sensor_msgs::PointCloud2 map_inflate_vis;
         pcl::toROSMsg(cloud_inflate_vis_, map_inflate_vis);
         // map_inflate_vis.header.frame_id = msg->header.frame_id;
-        map_inflate_vis.header.frame_id = "world";
+        map_inflate_vis.header.frame_id = "map";
         // map_inflate_vis.width = cloud_inflate_vis_.points.size();
         // map_inflate_vis.height = 1;
         // map_inflate_vis.is_dense = true;
