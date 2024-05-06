@@ -653,7 +653,7 @@ void GridMap::updateOccupancyCallback(const ros::TimerEvent & /*event*/){
   
   if (!md_.occ_need_update_){
     if ( md_.flag_use_depth_fusion && (ros::Time::now() - md_.last_occ_update_time_).toSec() > mp_.odom_depth_timeout_ ){
-      ROS_ERROR("odom or depth lost! ros::Time::now()=%f, md_.last_occ_update_time_=%f, mp_.odom_depth_timeout_=%f", 
+      ROS_ERROR("[grid_map] odom or depth lost! ros::Time::now()=%f, md_.last_occ_update_time_=%f, mp_.odom_depth_timeout_=%f",
         ros::Time::now().toSec(), md_.last_occ_update_time_.toSec(), mp_.odom_depth_timeout_);
       md_.flag_depth_odom_timeout_ = true;
     }
@@ -743,7 +743,7 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img){
   md_.has_cloud_ = true;
 
   if (!md_.has_odom_){
-    std::cout << "no odom!" << std::endl;
+    std::cout << "[grid_map] no odom!" << std::endl;
     return;
   }
 
@@ -841,7 +841,6 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img){
 }
 
 void GridMap::publishMap(){
-
   if (map_pub_.getNumSubscribers() <= 0)
     return;
 
@@ -877,31 +876,31 @@ void GridMap::publishMap(){
       }
 
   //border
-  for(int i = 0; i < mp_.map_voxel_num_(0); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_min_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
+//  for(int i = 0; i < mp_.map_voxel_num_(0); i++)
+//  {
+//    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
+//    pt.y = mp_.map_min_boundary_(1);
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//
+//    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
+//    pt.y = mp_.map_max_boundary_(1);
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//  }
 
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_max_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
-
-  for(int i = 0; i < mp_.map_voxel_num_(1); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_max_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
+//  for(int i = 0; i < mp_.map_voxel_num_(1); i++)
+//  {
+//    pt.x = mp_.map_min_boundary_(0);
+//    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//
+//    pt.x = mp_.map_max_boundary_(0);
+//    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//  }
 
   cloud.width = cloud.points.size();
   cloud.height = 1;
@@ -954,31 +953,31 @@ void GridMap::publishMapInflate(bool all_info){
       }
 
   //border x
-  for(int i = 0; i < mp_.map_voxel_num_(0); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_min_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_max_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
+//  for(int i = 0; i < mp_.map_voxel_num_(0); i++)
+//  {
+//    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
+//    pt.y = mp_.map_min_boundary_(1);
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//
+//    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
+//    pt.y = mp_.map_max_boundary_(1);
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//  }
   //border y
-  for(int i = 0; i < mp_.map_voxel_num_(1); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_max_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
+//  for(int i = 0; i < mp_.map_voxel_num_(1); i++)
+//  {
+//    pt.x = mp_.map_min_boundary_(0);
+//    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//
+//    pt.x = mp_.map_max_boundary_(0);
+//    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
+//    pt.z = mp_.map_min_boundary_(2);
+//    cloud.push_back(pt);
+//  }
 
   cloud.width = cloud.points.size();
   cloud.height = 1;
