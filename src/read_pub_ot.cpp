@@ -4,7 +4,10 @@
 
 #include <iostream>
 //#include <assert.h>
-
+#include <sensor_msgs/PointCloud2.h>
+//#include <geometry_msgs/Point.h>
+//#include <tf/transform_datatypes.h>
+#include <ros/ros.h>
 //pcl
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -13,27 +16,15 @@
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-
 //octomap
 #include <octomap/octomap.h>
 #include <octomap/ColorOcTree.h>
-
 // #include <octomap_ros/conversions.h>
 #include <octomap/OcTreeKey.h>
-
-
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <octomap_msgs/GetOctomap.h>
 #include <octomap_msgs/BoundingBoxQuery.h>
-
-
-#include <sensor_msgs/PointCloud2.h>
-//#include <geometry_msgs/Point.h>
-//#include <tf/transform_datatypes.h>
-
-
-#include <ros/ros.h>
 
 using namespace std;
 
@@ -60,7 +51,7 @@ octomap::OcTree* inf_m_octree;
 
 void inflate_octomap(void);
 void cmdCallback(const ros::TimerEvent& e){
-    printf("publish octomap!\n");
+    printf("publish octomap!");
 
     //声明message
     octomap_msgs::Octomap map_msg, inf_map_msg;
@@ -68,26 +59,22 @@ void cmdCallback(const ros::TimerEvent& e){
     // map_msg.binary = true;
 
 //    fullMapToMsg负责转换成message
-    if (octomap_msgs::fullMapToMsg(*m_octree, map_msg))
-    {
+    if (octomap_msgs::fullMapToMsg(*m_octree, map_msg)){
         //转换成功，可以发布了
         map_msg.header.frame_id = "map";
         map_msg.header.stamp = ros::Time::now();
         pub_octomap.publish(map_msg);
-    } 
-    else
+    }else {
         ROS_ERROR("Error serializing OctoMap");
-
-    if (octomap_msgs::fullMapToMsg(*inf_m_octree, inf_map_msg))
-    {
+    }
+    if (octomap_msgs::fullMapToMsg(*inf_m_octree, inf_map_msg)){
         //转换成功，可以发布了
         inf_map_msg.header.frame_id = "map";
         inf_map_msg.header.stamp = ros::Time::now();
         pub_inf_octomap.publish(inf_map_msg);
-    }
-    else
+    }else {
         ROS_ERROR("Error serializing inflate OctoMap");
-
+    }
     sensor_msgs::PointCloud2 outputPC, output_inf_PC;
 
     pcl::toROSMsg(pclCloud, outputPC);
@@ -99,8 +86,6 @@ void cmdCallback(const ros::TimerEvent& e){
     pub_pcd.publish(outputPC);
     pub_inf_pcd.publish(output_inf_PC);
 }
-
-
 
 void write_ot(void){
     double res = 0.05;  // create empty tree with resolution 0.05 (different from default 0.1 for test)
@@ -147,8 +132,6 @@ void write_ot(void){
     tree.write(filename);
 }
 
-
-
 int main(int argc, char** argv){
     ros::init(argc, argv, "pub_octo");
     ros::NodeHandle node("~");
@@ -162,8 +145,9 @@ int main(int argc, char** argv){
     m_octree = new octomap::OcTree(0.2);
     inf_m_octree = new octomap::OcTree(0.2);
 
-    if (input_file.length() <= 3)
+    if (input_file.length() <= 3) {
         return false;
+    }
 
     std::string suffix = input_file.substr(input_file.length()-3, 3);
     if (suffix== ".bt"){
@@ -187,7 +171,6 @@ int main(int argc, char** argv){
             ROS_ERROR("Could not read OcTree in file, currently there are no other types supported in .ot");
             return false;
         }
-
     } else{
         return false;
     }
@@ -217,8 +200,6 @@ int main(int argc, char** argv){
     return 0;
 }
 
-
-
 void inflate_octomap(void){
     int m_maxTreeDepth = m_octree->getTreeDepth()-2;
     float m_res = m_octree->getResolution();
@@ -228,12 +209,10 @@ void inflate_octomap(void){
     m_octree->getMetricMin(minX, minY, minZ);
     m_octree->getMetricMax(maxX, maxY, maxZ);
     printf("octomap-- depth: %d, res: %f\n", m_maxTreeDepth, m_res);
-    
-      
+
       // now, traverse all leafs in the tree:
     int i(0);
-    for (OcTreeT::iterator it = m_octree->begin(m_maxTreeDepth),end = m_octree->end(); it != end; ++it)
-    {
+    for (OcTreeT::iterator it = m_octree->begin(m_maxTreeDepth),end = m_octree->end(); it != end; ++it){
         // bool inUpdateBBX = isInUpdateBBX(it);
 
         // // call general hook:
@@ -245,8 +224,7 @@ void inflate_octomap(void){
         if(! (i%100)) {
             ROS_INFO("node: %d, pos: [%f, %f, %f]", i, it.getX(), it.getY(), it.getZ());
         }
-        if (m_octree->isNodeOccupied(*it))
-        {
+        if (m_octree->isNodeOccupied(*it)){
             double z = it.getZ();
             double half_size = it.getSize() / 2.0;
             double size = it.getSize();

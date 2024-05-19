@@ -3,82 +3,65 @@
 // #define current_img_ md_.depth_image_[image_cnt_ & 1]
 // #define last_img_ md_.depth_image_[!(image_cnt_ & 1)]
 
-void GridMap::initMap(ros::NodeHandle &nh)
-{
-  node_ = nh;
-
+void GridMap::initMap(ros::NodeHandle &nh){
   /* get parameter */
-  int uav_id;
   double x_size, y_size, z_size;
+
   // 分辨率
-  node_.param("grid_map/uav_id", uav_id, 1);
-  node_.param("grid_map/resolution", mp_.resolution_, -1.0);
-  node_.param("grid_map/map_size_x", x_size, -1.0);
-  node_.param("grid_map/map_size_y", y_size, -1.0);
-  node_.param("grid_map/map_size_z", z_size, -1.0);
-  node_.param("grid_map/local_update_range_x", mp_.local_update_range_(0), -1.0);
-  node_.param("grid_map/local_update_range_y", mp_.local_update_range_(1), -1.0);
-  node_.param("grid_map/local_update_range_z", mp_.local_update_range_(2), -1.0);
+  nh.param("grid_map/resolution", mp_.resolution_, -1.0);
+  nh.param("grid_map/map_size_x", x_size, -1.0);
+  nh.param("grid_map/map_size_y", y_size, -1.0);
+  nh.param("grid_map/map_size_z", z_size, -1.0);
+  nh.param("grid_map/local_update_range_x", mp_.local_update_range_(0), -1.0);
+  nh.param("grid_map/local_update_range_y", mp_.local_update_range_(1), -1.0);
+  nh.param("grid_map/local_update_range_z", mp_.local_update_range_(2), -1.0);
   // 膨胀距离
-  node_.param("grid_map/obstacles_inflation", mp_.obstacles_inflation_, -1.0);
+  nh.param("grid_map/obstacles_inflation", mp_.obstacles_inflation_, 0.35);
   // 相机参数
-  node_.param("grid_map/fx", mp_.fx_, -1.0);
-  node_.param("grid_map/fy", mp_.fy_, -1.0);
-  node_.param("grid_map/cx", mp_.cx_, -1.0);
-  node_.param("grid_map/cy", mp_.cy_, -1.0);
+  nh.param("grid_map/fx", mp_.fx_, -1.0);
+  nh.param("grid_map/fy", mp_.fy_, -1.0);
+  nh.param("grid_map/cx", mp_.cx_, -1.0);
+  nh.param("grid_map/cy", mp_.cy_, -1.0);
   // depth filter
-  node_.param("grid_map/use_depth_filter", mp_.use_depth_filter_, true);
-  node_.param("grid_map/depth_filter_tolerance", mp_.depth_filter_tolerance_, -1.0);
-  node_.param("grid_map/depth_filter_maxdist", mp_.depth_filter_maxdist_, -1.0);
-  node_.param("grid_map/depth_filter_mindist", mp_.depth_filter_mindist_, -1.0);
-  node_.param("grid_map/depth_filter_margin", mp_.depth_filter_margin_, -1);
-  node_.param("grid_map/k_depth_scaling_factor", mp_.k_depth_scaling_factor_, -1.0);
-  node_.param("grid_map/skip_pixel", mp_.skip_pixel_, -1);
+  nh.param("grid_map/use_depth_filter", mp_.use_depth_filter_, true);
+  nh.param("grid_map/depth_filter_tolerance", mp_.depth_filter_tolerance_, -1.0);
+  nh.param("grid_map/depth_filter_maxdist", mp_.depth_filter_maxdist_, -1.0);
+  nh.param("grid_map/depth_filter_mindist", mp_.depth_filter_mindist_, -1.0);
+  nh.param("grid_map/depth_filter_margin", mp_.depth_filter_margin_, -1);
+  nh.param("grid_map/k_depth_scaling_factor", mp_.k_depth_scaling_factor_, -1.0);
+  nh.param("grid_map/skip_pixel", mp_.skip_pixel_, -1);
   // local fusion
-  node_.param("grid_map/p_hit", mp_.p_hit_, 0.70);
-  node_.param("grid_map/p_miss", mp_.p_miss_, 0.35);
-  node_.param("grid_map/p_min", mp_.p_min_, 0.12);
-  node_.param("grid_map/p_max", mp_.p_max_, 0.97);
-  node_.param("grid_map/p_occ", mp_.p_occ_, 0.80);
-  node_.param("grid_map/min_ray_length", mp_.min_ray_length_, -0.1);
-  node_.param("grid_map/max_ray_length", mp_.max_ray_length_, -0.1);
+  nh.param("grid_map/p_hit", mp_.p_hit_, 0.70);
+  nh.param("grid_map/p_miss", mp_.p_miss_, 0.35);
+  nh.param("grid_map/p_min", mp_.p_min_, 0.12);
+  nh.param("grid_map/p_max", mp_.p_max_, 0.97);
+  nh.param("grid_map/p_occ", mp_.p_occ_, 0.80);
+  nh.param("grid_map/min_ray_length", mp_.min_ray_length_, -0.1);
+  nh.param("grid_map/max_ray_length", mp_.max_ray_length_, -0.1);
 
-  node_.param("grid_map/visualization_truncate_height", mp_.visualization_truncate_height_, -0.1);
-  node_.param("grid_map/virtual_ceil_height", mp_.virtual_ceil_height_, -0.1);
-  node_.param("grid_map/virtual_ceil_yp", mp_.virtual_ceil_yp_, -0.1);
-  node_.param("grid_map/virtual_ceil_yn", mp_.virtual_ceil_yn_, -0.1);
+  nh.param("grid_map/visualization_truncate_height", mp_.visualization_truncate_height_, -0.1);
+  nh.param("grid_map/virtual_ceil_height", mp_.virtual_ceil_height_, -0.1);
+  nh.param("grid_map/virtual_ceil_yp", mp_.virtual_ceil_yp_, -0.1);
+  nh.param("grid_map/virtual_ceil_yn", mp_.virtual_ceil_yn_, -0.1);
 
-  node_.param("grid_map/show_occ_time", mp_.show_occ_time_, false);
-  node_.param("grid_map/pose_type", mp_.pose_type_, 1);
+  nh.param("grid_map/show_occ_time", mp_.show_occ_time_, false);
+  nh.param("grid_map/pose_type", mp_.pose_type_, 2);
 
-  node_.param("grid_map/frame_id", mp_.frame_id_, string("world"));
+  nh.param("grid_map/frame_id", mp_.frame_id_, string("map"));
   // 地图边缘
-  node_.param("grid_map/local_map_margin", mp_.local_map_margin_, 1);
+  nh.param("grid_map/local_map_margin", mp_.local_map_margin_, 1);
   // 地面高度
-  node_.param("grid_map/ground_height", mp_.ground_height_, 0.0);
+  nh.param("grid_map/ground_height", mp_.ground_height_, -0.01);
 
-  node_.param("grid_map/odom_depth_timeout", mp_.odom_depth_timeout_, 1.0);
+  nh.param("grid_map/odom_depth_timeout", mp_.odom_depth_timeout_, 1.0);
 
-  if( mp_.virtual_ceil_height_ - mp_.ground_height_ > z_size)
-  {
+  if( mp_.virtual_ceil_height_ - mp_.ground_height_ > z_size){
     // 天花板高度 = 地面高度 + z_size
     mp_.virtual_ceil_height_ = mp_.ground_height_ + z_size;
   }
 
   mp_.resolution_inv_ = 1 / mp_.resolution_;
-  //todo: different map origin
-  if(uav_id==1)
-  {
     mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
-  }
-  else if(uav_id==2)
-  {
-    mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
-  }
-  else
-  {
-    mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
-  }
   mp_.map_size_ = Eigen::Vector3d(x_size, y_size, z_size);
 
   //logit(x) (log((x) / (1 - (x))))
@@ -89,11 +72,11 @@ void GridMap::initMap(ros::NodeHandle &nh)
   mp_.min_occupancy_log_ = logit(mp_.p_occ_);
   mp_.unknown_flag_ = 0.01;
 
-  // cout << "hit: " << mp_.prob_hit_log_ << endl;
-  // cout << "miss: " << mp_.prob_miss_log_ << endl;
-  // cout << "min log: " << mp_.clamp_min_log_ << endl;
-  // cout << "max: " << mp_.clamp_max_log_ << endl;
-  // cout << "thresh log: " << mp_.min_occupancy_log_ << endl;
+    cout << "hit: " << mp_.prob_hit_log_ << endl;
+    cout << "miss: " << mp_.prob_miss_log_ << endl;
+    cout << "min log: " << mp_.clamp_min_log_ << endl;
+    cout << "max: " << mp_.clamp_max_log_ << endl;
+    cout << "thresh log: " << mp_.min_occupancy_log_ << endl;
 
   for (int i = 0; i < 3; ++i)
     mp_.map_voxel_num_(i) = ceil(mp_.map_size_(i) / mp_.resolution_);
@@ -119,46 +102,40 @@ void GridMap::initMap(ros::NodeHandle &nh)
   md_.proj_points_cnt = 0;
 
   // 相机外参数
-  md_.cam2body_ << 0.0, 0.0, 1.0, 0.0,
-                  -1.0, 0.0, 0.0, 0.0,
-                  0.0, -1.0, 0.0, 0.0,
+  md_.cam2body_ << -1.0, 0.0, 0.0, 0.0,
+                  0.0, -1.0, 0.0, -0.2,
+                  0.0, 0.0, 1.0, 0.095,
                   0.0, 0.0, 0.0, 1.0;
 
   /* init callback */
 
-  depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(node_, "grid_map/depth", 50));
+  depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(nh, "/camera/depth/image_raw", 50));
   // 相机外参
-  extrinsic_sub_ = node_.subscribe<nav_msgs::Odometry>("/vins_estimator/extrinsic", 10, &GridMap::extrinsicCallback, this); //sub
+  extrinsic_sub_ = nh.subscribe<nav_msgs::Odometry>("/vins_estimator/extrinsic", 10, &GridMap::extrinsicCallback, this); //sub
 
-  if (mp_.pose_type_ == POSE_STAMPED)
-  {
-    pose_sub_.reset(
-        new message_filters::Subscriber<geometry_msgs::PoseStamped>(node_, "grid_map/pose", 25));
+  if (mp_.pose_type_ == POSE_STAMPED){
+    pose_sub_.reset(new message_filters::Subscriber<geometry_msgs::PoseStamped>(nh, "/grid_map/pose", 25));
 
-    sync_image_pose_.reset(new message_filters::Synchronizer<SyncPolicyImagePose>(
-        SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
+    sync_image_pose_.reset(new message_filters::Synchronizer<SyncPolicyImagePose>(SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
     sync_image_pose_->registerCallback(boost::bind(&GridMap::depthPoseCallback, this, _1, _2));
-  }
-  else if (mp_.pose_type_ == ODOMETRY)
-  {
-    odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(node_, "grid_map/odom", 100, ros::TransportHints().tcpNoDelay()));
+  }else if (mp_.pose_type_ == ODOMETRY){
+    odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(nh, "/camera/odom", 100, ros::TransportHints().tcpNoDelay()));
 
-    sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(
-        SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
+    sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
     sync_image_odom_->registerCallback(boost::bind(&GridMap::depthOdomCallback, this, _1, _2));
   }
 
   // use odometry and point cloud
-  indep_cloud_sub_ =
-      node_.subscribe<sensor_msgs::PointCloud2>("grid_map/cloud", 10, &GridMap::cloudCallback, this);
-  indep_odom_sub_ =
-      node_.subscribe<nav_msgs::Odometry>("grid_map/odom", 10, &GridMap::odomCallback, this);
+//  indep_cloud_sub_ = nh.subscribe<sensor_msgs::PointCloud2>("/prometheus/merged_pcl", 10, &GridMap::cloudCallback, this);
+//  indep_odom_sub_ = nh.subscribe<nav_msgs::Odometry>("/prometheus/drone_odom", 10, &GridMap::odomCallback, this);
 
-  occ_timer_ = node_.createTimer(ros::Duration(0.05), &GridMap::updateOccupancyCallback, this);
-  vis_timer_ = node_.createTimer(ros::Duration(0.11), &GridMap::visCallback, this);
+  occ_timer_ = nh.createTimer(ros::Duration(0.05), &GridMap::updateOccupancyCallback, this);
+  vis_timer_ = nh.createTimer(ros::Duration(0.11), &GridMap::visCallback, this);
 
-  map_pub_ = node_.advertise<sensor_msgs::PointCloud2>("grid_map/occupancy", 10);
-  map_inf_pub_ = node_.advertise<sensor_msgs::PointCloud2>("grid_map/occupancy_inflate", 10);
+  map_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/grid_map/occupancy", 10);
+  map_inf_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/grid_map/occupancy_inflate", 10);
+
+    unknown_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/grid_map/unknown", 10);
 
   md_.occ_need_update_ = false;
   md_.local_updated_ = false;
@@ -194,7 +171,6 @@ void GridMap::resetBuffer()
 
 void GridMap::resetBuffer(Eigen::Vector3d min_pos, Eigen::Vector3d max_pos)
 {
-
   Eigen::Vector3i min_id, max_id;
   posToIndex(min_pos, min_id);
   posToIndex(max_pos, max_id);
@@ -233,8 +209,7 @@ int GridMap::setCacheOccupancy(Eigen::Vector3d pos, int occ)
   return idx_ctns;
 }
 
-void GridMap::projectDepthImage()
-{
+void GridMap::projectDepthImage(){
   // md_.proj_points_.clear();
   md_.proj_points_cnt = 0;
 
@@ -248,14 +223,11 @@ void GridMap::projectDepthImage()
 
   Eigen::Matrix3d camera_r = md_.camera_r_m_;
 
-  if (!mp_.use_depth_filter_)
-  {
-    for (int v = 0; v < rows; v+=skip_pix)
-    {
+  if (!mp_.use_depth_filter_){
+    for (int v = 0; v < rows; v+=skip_pix){
       row_ptr = md_.depth_image_.ptr<uint16_t>(v);
 
-      for (int u = 0; u < cols; u+=skip_pix)
-      {
+      for (int u = 0; u < cols; u+=skip_pix){
 
         Eigen::Vector3d proj_pt;
         depth = (*row_ptr++) / mp_.k_depth_scaling_factor_;
@@ -266,7 +238,7 @@ void GridMap::projectDepthImage()
         proj_pt = camera_r * proj_pt + md_.camera_pos_;
 
         if (u == 320 && v == 240)
-          std::cout << "depth: " << depth << std::endl;
+          std::cout << "[plan_env] depth: " << depth << std::endl;
         md_.proj_points_[md_.proj_points_cnt++] = proj_pt;
       }
     }
@@ -274,7 +246,6 @@ void GridMap::projectDepthImage()
   /* use depth filter */
   else
   {
-
     if (!md_.has_first_depth_)
       md_.has_first_depth_ = true;
     else
@@ -292,7 +263,6 @@ void GridMap::projectDepthImage()
         for (int u = mp_.depth_filter_margin_; u < cols - mp_.depth_filter_margin_;
              u += mp_.skip_pixel_)
         {
-
           depth = (*row_ptr) * inv_factor;
           row_ptr = row_ptr + mp_.skip_pixel_;
 
@@ -326,8 +296,7 @@ void GridMap::projectDepthImage()
           md_.proj_points_[md_.proj_points_cnt++] = pt_world;
 
           // check consistency with last image, disabled...
-          if (false)
-          {
+          if (false){
             pt_reproj = last_camera_r_inv * (pt_world - md_.last_camera_pos_);
             double uu = pt_reproj.x() * mp_.fx_ / pt_reproj.z() + mp_.cx_;
             double vv = pt_reproj.y() * mp_.fy_ / pt_reproj.z() + mp_.cy_;
@@ -357,8 +326,7 @@ void GridMap::projectDepthImage()
   md_.last_depth_image_ = md_.depth_image_;
 }
 
-void GridMap::raycastProcess()
-{
+void GridMap::raycastProcess(){
   // if (md_.proj_points_.size() == 0)
   if (md_.proj_points_cnt == 0)
     return;
@@ -498,7 +466,6 @@ void GridMap::raycastProcess()
 
   while (!md_.cache_voxel_.empty())
   {
-
     Eigen::Vector3i idx = md_.cache_voxel_.front();
     int idx_ctns = toAddress(idx);
     md_.cache_voxel_.pop();
@@ -586,51 +553,39 @@ void GridMap::clearAndInflateLocalMap()
   // clear data outside the local range
 
   for (int x = min_cut_m(0); x <= max_cut_m(0); ++x)
-    for (int y = min_cut_m(1); y <= max_cut_m(1); ++y)
-    {
-
-      for (int z = min_cut_m(2); z < min_cut(2); ++z)
-      {
+    for (int y = min_cut_m(1); y <= max_cut_m(1); ++y){
+      for (int z = min_cut_m(2); z < min_cut(2); ++z){
         int idx = toAddress(x, y, z);
         md_.occupancy_buffer_[idx] = mp_.clamp_min_log_ - mp_.unknown_flag_;
       }
 
-      for (int z = max_cut(2) + 1; z <= max_cut_m(2); ++z)
-      {
+      for (int z = max_cut(2) + 1; z <= max_cut_m(2); ++z){
         int idx = toAddress(x, y, z);
         md_.occupancy_buffer_[idx] = mp_.clamp_min_log_ - mp_.unknown_flag_;
       }
     }
 
   for (int z = min_cut_m(2); z <= max_cut_m(2); ++z)
-    for (int x = min_cut_m(0); x <= max_cut_m(0); ++x)
-    {
-
-      for (int y = min_cut_m(1); y < min_cut(1); ++y)
-      {
+    for (int x = min_cut_m(0); x <= max_cut_m(0); ++x){
+      for (int y = min_cut_m(1); y < min_cut(1); ++y){
         int idx = toAddress(x, y, z);
         md_.occupancy_buffer_[idx] = mp_.clamp_min_log_ - mp_.unknown_flag_;
       }
 
-      for (int y = max_cut(1) + 1; y <= max_cut_m(1); ++y)
-      {
+      for (int y = max_cut(1) + 1; y <= max_cut_m(1); ++y){
         int idx = toAddress(x, y, z);
         md_.occupancy_buffer_[idx] = mp_.clamp_min_log_ - mp_.unknown_flag_;
       }
     }
 
   for (int y = min_cut_m(1); y <= max_cut_m(1); ++y)
-    for (int z = min_cut_m(2); z <= max_cut_m(2); ++z)
-    {
-
-      for (int x = min_cut_m(0); x < min_cut(0); ++x)
-      {
+    for (int z = min_cut_m(2); z <= max_cut_m(2); ++z){
+      for (int x = min_cut_m(0); x < min_cut(0); ++x){
         int idx = toAddress(x, y, z);
         md_.occupancy_buffer_[idx] = mp_.clamp_min_log_ - mp_.unknown_flag_;
       }
 
-      for (int x = max_cut(0) + 1; x <= max_cut_m(0); ++x)
-      {
+      for (int x = max_cut(0) + 1; x <= max_cut_m(0); ++x){
         int idx = toAddress(x, y, z);
         md_.occupancy_buffer_[idx] = mp_.clamp_min_log_ - mp_.unknown_flag_;
       }
@@ -655,20 +610,16 @@ void GridMap::clearAndInflateLocalMap()
   // inflate obstacles
   for (int x = md_.local_bound_min_(0); x <= md_.local_bound_max_(0); ++x)
     for (int y = md_.local_bound_min_(1); y <= md_.local_bound_max_(1); ++y)
-      for (int z = md_.local_bound_min_(2); z <= md_.local_bound_max_(2); ++z)
-      {
+      for (int z = md_.local_bound_min_(2); z <= md_.local_bound_max_(2); ++z){
 
-        if (md_.occupancy_buffer_[toAddress(x, y, z)] > mp_.min_occupancy_log_)
-        {
+        if (md_.occupancy_buffer_[toAddress(x, y, z)] > mp_.min_occupancy_log_){
           inflatePoint(Eigen::Vector3i(x, y, z), inf_step, inf_pts);
 
-          for (int k = 0; k < (int)inf_pts.size(); ++k)
-          {
+          for (int k = 0; k < (int)inf_pts.size(); ++k){
             inf_pt = inf_pts[k];
             int idx_inf = toAddress(inf_pt);
             if (idx_inf < 0 ||
-                idx_inf >= mp_.map_voxel_num_(0) * mp_.map_voxel_num_(1) * mp_.map_voxel_num_(2))
-            {
+                idx_inf >= mp_.map_voxel_num_(0) * mp_.map_voxel_num_(1) * mp_.map_voxel_num_(2)){
               continue;
             }
             md_.occupancy_buffer_inflate_[idx_inf] = 1;
@@ -686,22 +637,17 @@ void GridMap::clearAndInflateLocalMap()
   }
 }
 
-void GridMap::visCallback(const ros::TimerEvent & /*event*/)
-{
-
+void GridMap::visCallback(const ros::TimerEvent & /*event*/){
   publishMapInflate(true);
   publishMap();
 }
 
-void GridMap::updateOccupancyCallback(const ros::TimerEvent & /*event*/)
-{
+void GridMap::updateOccupancyCallback(const ros::TimerEvent & /*event*/){
   if (md_.last_occ_update_time_.toSec() < 1.0 ) md_.last_occ_update_time_ = ros::Time::now();
   
-  if (!md_.occ_need_update_)
-  {
-    if ( md_.flag_use_depth_fusion && (ros::Time::now() - md_.last_occ_update_time_).toSec() > mp_.odom_depth_timeout_ )
-    {
-      ROS_ERROR("odom or depth lost! ros::Time::now()=%f, md_.last_occ_update_time_=%f, mp_.odom_depth_timeout_=%f", 
+  if (!md_.occ_need_update_){
+    if ( md_.flag_use_depth_fusion && (ros::Time::now() - md_.last_occ_update_time_).toSec() > mp_.odom_depth_timeout_ ){
+      ROS_ERROR("[grid_map] odom or depth lost! ros::Time::now()=%f, md_.last_occ_update_time_=%f, mp_.odom_depth_timeout_=%f",
         ros::Time::now().toSec(), md_.last_occ_update_time_.toSec(), mp_.odom_depth_timeout_);
       md_.flag_depth_odom_timeout_ = true;
     }
@@ -739,18 +685,12 @@ void GridMap::updateOccupancyCallback(const ros::TimerEvent & /*event*/)
   md_.local_updated_ = false;
 }
 
-void GridMap::depthPoseCallback(const sensor_msgs::ImageConstPtr &img,
-                                const geometry_msgs::PoseStampedConstPtr &pose)
-{
-
-  std::cout << "test 1!" << std::endl;
-
+void GridMap::depthPoseCallback(const sensor_msgs::ImageConstPtr &img, const geometry_msgs::PoseStampedConstPtr &pose){
   /* get depth image */
   cv_bridge::CvImagePtr cv_ptr;
   cv_ptr = cv_bridge::toCvCopy(img, img->encoding);
 
-  if (img->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
-  {
+  if (img->encoding == sensor_msgs::image_encodings::TYPE_32FC1){
     (cv_ptr->image).convertTo(cv_ptr->image, CV_16UC1, mp_.k_depth_scaling_factor_);
   }
   cv_ptr->image.copyTo(md_.depth_image_);
@@ -764,22 +704,18 @@ void GridMap::depthPoseCallback(const sensor_msgs::ImageConstPtr &img,
   md_.camera_r_m_ = Eigen::Quaterniond(pose->pose.orientation.w, pose->pose.orientation.x,
                                        pose->pose.orientation.y, pose->pose.orientation.z)
                         .toRotationMatrix();
-  if (isInMap(md_.camera_pos_))
-  {
+  if (isInMap(md_.camera_pos_)){
     md_.has_odom_ = true;
     md_.update_num_ += 1;
     md_.occ_need_update_ = true;
-  }
-  else
-  {
+  }else{
     md_.occ_need_update_ = false;
   }
 
   md_.flag_use_depth_fusion = true;
 }
 
-void GridMap::odomCallback(const nav_msgs::OdometryConstPtr &odom)
-{
+void GridMap::odomCallback(const nav_msgs::OdometryConstPtr &odom){
   if (md_.has_first_depth_)
     return;
 
@@ -790,21 +726,17 @@ void GridMap::odomCallback(const nav_msgs::OdometryConstPtr &odom)
   md_.has_odom_ = true;
 }
 
-void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
-{
-
+void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img){
+    cout << "[plan_env] cloudCallback" << endl;
   pcl::PointCloud<pcl::PointXYZ> latest_cloud;
   pcl::fromROSMsg(*img, latest_cloud);
 
   md_.has_cloud_ = true;
 
-  if (!md_.has_odom_)
-  {
-    std::cout << "no odom!" << std::endl;
+  if (!md_.has_odom_){
+    std::cout << "[plan_env] no odom!" << std::endl;
     return;
   }
-
-  //ROS_INFO("test 3");
 
   if (latest_cloud.points.size() == 0)
     return;
@@ -831,8 +763,7 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
   max_y = mp_.map_min_boundary_(1);
   max_z = mp_.map_min_boundary_(2);
 
-  for (size_t i = 0; i < latest_cloud.points.size(); ++i)
-  {
+  for (size_t i = 0; i < latest_cloud.points.size(); ++i){
     pt = latest_cloud.points[i];
     p3d(0) = pt.x, p3d(1) = pt.y, p3d(2) = pt.z;
 
@@ -841,14 +772,12 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
     Eigen::Vector3i inf_pt;
 
     if (fabs(devi(0)) < mp_.local_update_range_(0) && fabs(devi(1)) < mp_.local_update_range_(1) &&
-        fabs(devi(2)) < mp_.local_update_range_(2))
-    {
+        fabs(devi(2)) < mp_.local_update_range_(2)){
 
       /* inflate the point */
       for (int x = -inf_step; x <= inf_step; ++x)
         for (int y = -inf_step; y <= inf_step; ++y)
-          for (int z = -inf_step_z; z <= inf_step_z; ++z)
-          {
+          for (int z = -inf_step_z; z <= inf_step_z; ++z){
 
             p3d_inf(0) = pt.x + x * mp_.resolution_;
             p3d_inf(1) = pt.y + y * mp_.resolution_;
@@ -900,9 +829,7 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
   }
 }
 
-void GridMap::publishMap()
-{
-
+void GridMap::publishMap(){
   if (map_pub_.getNumSubscribers() <= 0)
     return;
 
@@ -937,33 +864,6 @@ void GridMap::publishMap()
         cloud.push_back(pt);
       }
 
-  //border
-  for(int i = 0; i < mp_.map_voxel_num_(0); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_min_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_max_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
-
-  for(int i = 0; i < mp_.map_voxel_num_(1); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_max_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
-
   cloud.width = cloud.points.size();
   cloud.height = 1;
   cloud.is_dense = true;
@@ -975,9 +875,7 @@ void GridMap::publishMap()
   map_pub_.publish(cloud_msg);
 }
 
-void GridMap::publishMapInflate(bool all_info)
-{
-
+void GridMap::publishMapInflate(bool all_info){
   if (map_inf_pub_.getNumSubscribers() <= 0)
     return;
 
@@ -1015,33 +913,6 @@ void GridMap::publishMapInflate(bool all_info)
         cloud.push_back(pt);
       }
 
-  //border x
-  for(int i = 0; i < mp_.map_voxel_num_(0); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_min_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_min_boundary_(0)+i*mp_.resolution_;
-    pt.y = mp_.map_max_boundary_(1);
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
-  //border y
-  for(int i = 0; i < mp_.map_voxel_num_(1); i++)
-  {
-    pt.x = mp_.map_min_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-
-    pt.x = mp_.map_max_boundary_(0);
-    pt.y = mp_.map_min_boundary_(1)+i*mp_.resolution_;
-    pt.z = mp_.map_min_boundary_(2);
-    cloud.push_back(pt);
-  }
-
   cloud.width = cloud.points.size();
   cloud.height = 1;
   cloud.is_dense = true;
@@ -1052,6 +923,46 @@ void GridMap::publishMapInflate(bool all_info)
   map_inf_pub_.publish(cloud_msg);
 
   // ROS_INFO("pub map");
+}
+
+void GridMap::publishUnknown()
+{
+    pcl::PointXYZ pt;
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+
+    Eigen::Vector3i min_cut = md_.local_bound_min_;
+    Eigen::Vector3i max_cut = md_.local_bound_max_;
+
+    boundIndex(max_cut);
+    boundIndex(min_cut);
+
+    for (int x = min_cut(0); x <= max_cut(0); ++x)
+        for (int y = min_cut(1); y <= max_cut(1); ++y)
+            for (int z = min_cut(2); z <= max_cut(2); ++z)
+            {
+
+                if (md_.occupancy_buffer_[toAddress(x, y, z)] < mp_.clamp_min_log_ - 1e-3)
+                {
+                    Eigen::Vector3d pos;
+                    indexToPos(Eigen::Vector3i(x, y, z), pos);
+                    if (pos(2) > mp_.visualization_truncate_height_)
+                        continue;
+
+                    pt.x = pos(0);
+                    pt.y = pos(1);
+                    pt.z = pos(2);
+                    cloud.push_back(pt);
+                }
+            }
+
+    cloud.width = cloud.points.size();
+    cloud.height = 1;
+    cloud.is_dense = true;
+    cloud.header.frame_id = mp_.frame_id_;
+
+    sensor_msgs::PointCloud2 cloud_msg;
+    pcl::toROSMsg(cloud, cloud_msg);
+    unknown_pub_.publish(cloud_msg);
 }
 
 bool GridMap::odomValid() { return md_.has_odom_; }
@@ -1083,9 +994,7 @@ void GridMap::extrinsicCallback(const nav_msgs::OdometryConstPtr &odom)
   md_.cam2body_(3, 3) = 1.0;
 }
 
-void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img,
-                                const nav_msgs::OdometryConstPtr &odom)
-{
+void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img, const nav_msgs::OdometryConstPtr &odom){
   /* get pose */
   Eigen::Quaterniond body_q = Eigen::Quaterniond(odom->pose.pose.orientation.w,
                                                  odom->pose.pose.orientation.x,
@@ -1108,8 +1017,7 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img,
   /* get depth image */
   cv_bridge::CvImagePtr cv_ptr;
   cv_ptr = cv_bridge::toCvCopy(img, img->encoding);
-  if (img->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
-  {
+  if (img->encoding == sensor_msgs::image_encodings::TYPE_32FC1){
     (cv_ptr->image).convertTo(cv_ptr->image, CV_16UC1, mp_.k_depth_scaling_factor_);
   }
   cv_ptr->image.copyTo(md_.depth_image_);

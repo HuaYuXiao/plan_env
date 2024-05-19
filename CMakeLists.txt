@@ -51,19 +51,19 @@ link_libraries(${OCTOMAP_LIBRARIES})
 
 add_library(plan_env
         src/sdf_map.cpp
+        src/obj_predictor.cpp
         src/edt_environment.cpp
+        src/raycast.cpp
         src/global_point_sdf.cpp
     src/grid_map.cpp 
-    src/raycast.cpp
-    src/obj_predictor.cpp 
-    )
+)
 target_link_libraries(plan_env
     ${catkin_LIBRARIES} 
     ${PCL_LIBRARIES}
     ${OpenCV_LIBS}
         ${OCTOMAP_LIBRARIES}
         ${Boost_LIBRARIES}
-    )  
+)
 
 #add_executable(read_pub_ot
 #        src/read_pub_ot.cpp)
@@ -79,4 +79,4 @@ add_executable(obj_generator
 target_link_libraries(obj_generator 
     ${catkin_LIBRARIES}
         ${OCTOMAP_LIBRARIES}
-    )
+)
