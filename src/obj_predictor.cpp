@@ -29,26 +29,23 @@
 namespace fast_planner {
 /* ============================== obj history_ ============================== */
 
-// int ObjHistory::queue_size_;
-// int ObjHistory::skip_num_;
-// ros::Time ObjHistory::global_start_time_;
+int ObjHistory::queue_size_;
+int ObjHistory::skip_num_;
+ros::Time ObjHistory::global_start_time_;
 
-void ObjHistory::init(int id, int skip_num, int queue_size, ros::Time global_start_time) {
+void ObjHistory::init(int id) {
   clear();
   skip_ = 0;
   obj_idx_ = id;
-  skip_num_ = skip_num;
-  queue_size_ = queue_size;
-  global_start_time_ = global_start_time;
 }
 
 void ObjHistory::poseCallback(const geometry_msgs::PoseStampedConstPtr& msg) {
   ++skip_;
-  if (skip_ < skip_num_) return;
+  if (skip_ < ObjHistory::skip_num_) return;
 
   Eigen::Vector4d pos_t;
   pos_t(0) = msg->pose.position.x, pos_t(1) = msg->pose.position.y, pos_t(2) = msg->pose.position.z;
-  pos_t(3) = (ros::Time::now() - global_start_time_).toSec();
+  pos_t(3) = (ros::Time::now() - ObjHistory::global_start_time_).toSec();
 
   history_.push_back(pos_t);
   // cout << "idx: " << obj_idx_ << "pos_t: " << pos_t.transpose() << endl;
@@ -73,13 +70,9 @@ ObjPredictor::~ObjPredictor() {
 
 void ObjPredictor::init() {
   /* get param */
-  int queue_size, skip_nums;
-
-  node_handle_.param("prediction/obj_num", obj_num_, 0);
+  node_handle_.param("prediction/obj_num", obj_num_, 5);
   node_handle_.param("prediction/lambda", lambda_, 1.0);
   node_handle_.param("prediction/predict_rate", predict_rate_, 1.0);
-  node_handle_.param("prediction/queue_size", queue_size, 10);
-  node_handle_.param("prediction/skip_nums", skip_nums, 1);
 
   predict_trajs_.reset(new vector<PolynomialPrediction>);
   predict_trajs_->resize(obj_num_);
@@ -91,19 +84,16 @@ void ObjPredictor::init() {
     scale_init_[i] = false;
 
   /* subscribe to pose */
-  ros::Time t_now = ros::Time::now();
   for (int i = 0; i < obj_num_; i++) {
     shared_ptr<ObjHistory> obj_his(new ObjHistory);
 
-    obj_his->init(i, skip_nums, queue_size, t_now);
+    obj_his->init(i);
     obj_histories_.push_back(obj_his);
 
     ros::Subscriber pose_sub = node_handle_.subscribe<geometry_msgs::PoseStamped>(
         "/dynamic/pose_" + std::to_string(i), 10, &ObjHistory::poseCallback, obj_his.get());
 
     pose_subs_.push_back(pose_sub);
-
-    predict_trajs_->at(i).setGlobalStartTime(t_now);
   }
 
   marker_sub_ = node_handle_.subscribe<visualization_msgs::Marker>("/dynamic/obj", 10,
@@ -211,14 +201,6 @@ void ObjPredictor::predictConstVel() {
     /* ---------- get the last two point ---------- */
     list<Eigen::Vector4d> his;
     obj_histories_[i]->getHistory(his);
-    // if ( i==0 )
-    // {
-    //   cout << "his.size()=" << his.size() << endl;
-    //   for ( auto hi:his )
-    //   {
-    //     cout << hi.transpose() << endl;
-    //   }
-    // }
     list<Eigen::Vector4d>::iterator list_it = his.end();
 
     /* ---------- test iteration ---------- */
@@ -251,38 +233,10 @@ void ObjPredictor::predictConstVel() {
       polys[j].setZero();
       polys[j].head(2) = p01.col(j);
     }
-    
-    // if ( i==0 )
-    // {
-    //   cout << "q1=" << q1.transpose() << " t1=" << t1 << " q2=" << q2.transpose() << " t2=" << t2 << endl;
-    //   cout << "polys=" << polys[0].transpose() << endl;
-    // }
 
     predict_trajs_->at(i).setPolynomial(polys);
     predict_trajs_->at(i).setTime(t1, t2);
   }
-}
-
-Eigen::Vector3d ObjPredictor::evaluatePoly(int obj_id, double time)
-{
-  if ( obj_id < obj_num_ )
-  {
-    return predict_trajs_->at(obj_id).evaluate(time);
-  }
-
-  double MAX = std::numeric_limits<double>::max();
-  return Eigen::Vector3d(MAX, MAX, MAX);
-}
-
-Eigen::Vector3d ObjPredictor::evaluateConstVel(int obj_id, double time)
-{
-  if ( obj_id < obj_num_ )
-  {
-    return predict_trajs_->at(obj_id).evaluateConstVel(time);
-  }
-
-  double MAX = std::numeric_limits<double>::max();
-  return Eigen::Vector3d(MAX, MAX, MAX);
 }
 
 // ObjPredictor::
