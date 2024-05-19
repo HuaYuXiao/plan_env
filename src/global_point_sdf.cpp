@@ -271,19 +271,19 @@ namespace dyn_planner {
         node_ = nh;
 
         /* ---------- param ---------- */
-        node_.param("sdf_map/origin_x", origin_(0), -20.0);
-        node_.param("sdf_map/origin_y", origin_(1), -20.0);
+        node_.param("sdf_map/origin_x", origin_(0), -8.0);
+        node_.param("sdf_map/origin_y", origin_(1), -5.0);
         node_.param("sdf_map/origin_z", origin_(2), 0.0);
 
-        node_.param("sdf_map/map_size_x", map_size_(0), 40.0);
-        node_.param("sdf_map/map_size_y", map_size_(1), 40.0);
-        node_.param("sdf_map/map_size_z", map_size_(2), 5.0);
+        node_.param("sdf_map/map_size_x", map_size_(0), 16.0);
+        node_.param("sdf_map/map_size_y", map_size_(1), 10.0);
+        node_.param("sdf_map/map_size_z", map_size_(2), 3.0);
 
-        node_.param("sdf_map/resolution_sdf", resolution_sdf_, 0.2);
-        node_.param("sdf_map/ceil_height", ceil_height_, 5.0);
+        node_.param("sdf_map/resolution_sdf", resolution_sdf_, 0.1);
+        node_.param("sdf_map/ceil_height", ceil_height_, 2.99);
 //        node_.param("sdf_map/update_rate", update_rate_, 10.0);
         node_.param("sdf_map/update_range", update_range_, 5.0);
-        node_.param("sdf_map/inflate", inflate_, 0.2);
+        node_.param("sdf_map/inflate", inflate_, 0.35);
 //        node_.param("sdf_map/radius_ignore", radius_ignore_, 0.2);
 
         cout << "origin_: " << origin_.transpose() << endl;

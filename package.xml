@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>plan_env</name>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
   <description>
     The plan_env package
   </description>
@@ -24,7 +24,7 @@
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+   <author email="jane.doe@example.com">Jane Doe</author>
 
   <!-- The *depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->
