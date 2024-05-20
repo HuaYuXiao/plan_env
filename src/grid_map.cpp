@@ -657,29 +657,11 @@ void GridMap::updateOccupancyCallback(const ros::TimerEvent & /*event*/){
   // std::cout << "updateOccupancyCallback 1!" << std::endl;
   md_.last_occ_update_time_ = ros::Time::now();
 
-  /* update occupancy */
-  // ros::Time t1, t2, t3, t4;
-  // t1 = ros::Time::now();
-
   projectDepthImage();
-  // t2 = ros::Time::now();
   raycastProcess();
-  // t3 = ros::Time::now();
 
   if (md_.local_updated_)
     clearAndInflateLocalMap();
-
-  // t4 = ros::Time::now();
-
-  // cout << setprecision(7);
-  // cout << "t2=" << (t2-t1).toSec() << " t3=" << (t3-t2).toSec() << " t4=" << (t4-t3).toSec() << endl;;
-
-  // md_.fuse_time_ += (t2 - t1).toSec();
-  // md_.max_fuse_time_ = max(md_.max_fuse_time_, (t2 - t1).toSec());
-
-  // if (mp_.show_occ_time_)
-  //   ROS_WARN("Fusion: cur t = %lf, avg t = %lf, max t = %lf", (t2 - t1).toSec(),
-  //            md_.fuse_time_ / md_.update_num_, md_.max_fuse_time_);
 
   md_.occ_need_update_ = false;
   md_.local_updated_ = false;
@@ -1026,5 +1008,5 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img, const nav
   md_.flag_use_depth_fusion = true;
 
   // reset depth lost flag
-  if(md_.flag_depth_odom_timeout_ == true) md_.flag_depth_odom_timeout_ = false;
+  if(md_.flag_depth_odom_timeout_) md_.flag_depth_odom_timeout_ = false;
 }

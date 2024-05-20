@@ -37,16 +37,13 @@
 #include <ros/ros.h>
 #include <tuple>
 #include <visualization_msgs/Marker.h>
-
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/sync_policies/exact_time.h>
 #include <message_filters/time_synchronizer.h>
-
 #include <plan_env/raycast.h>
 
 #define logit(x) (log((x) / (1 - (x))))
@@ -80,10 +77,12 @@ struct MappingParameters {
     double obstacles_inflation_;
     string frame_id_;
     int pose_type_;
-    string map_input_;  // 1: pose+depth; 2: odom + cloud
 
     /* camera parameters */
     double cx_, cy_, fx_, fy_;
+
+    /* time out */
+    double odom_depth_timeout_;
 
     /* depth image projection filtering */
     double depth_filter_maxdist_, depth_filter_mindist_, depth_filter_tolerance_;
@@ -144,7 +143,6 @@ struct MappingData {
     // odom_depth_timeout_
     ros::Time last_occ_update_time_;
     bool flag_depth_odom_timeout_;
-    bool flag_use_depth_fusion;
 
     // depth image projected point cloud
 
@@ -205,8 +203,6 @@ public:
     inline double getDistance(const Eigen::Vector3i& id);
     inline double getDistWithGradTrilinear(Eigen::Vector3d pos, Eigen::Vector3d& grad);
     void getSurroundPts(const Eigen::Vector3d& pos, Eigen::Vector3d pts[2][2][2], Eigen::Vector3d& diff);
-    // /inline void setLocalRange(Eigen::Vector3d min_pos, Eigen::Vector3d
-    // max_pos);
 
     void updateESDF3d();
     void getSliceESDF(const double height, const double res, const Eigen::Vector4d& range,
@@ -229,6 +225,7 @@ public:
     double getResolution();
     Eigen::Vector3d getOrigin();
     int getVoxelNum();
+    bool getOdomDepthTimeout() { return md_.flag_depth_odom_timeout_; }
 
     typedef std::shared_ptr<SDFMap> Ptr;
 

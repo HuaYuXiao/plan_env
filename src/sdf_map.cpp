@@ -303,7 +303,8 @@ void SDFMap::updateESDF3d() {
 
         } else if (md_.occupancy_buffer_inflate_[idx] == 1) {
           md_.occupancy_buffer_neg[idx] = 0;
-        } else {
+        }
+        else {
           ROS_ERROR("what?");
         }
       }
@@ -464,7 +465,8 @@ void SDFMap::projectDepthImage() {
                        pt_reproj.z()) < mp_.depth_filter_tolerance_) {
                 md_.proj_points_[md_.proj_points_cnt++] = pt_world;
               }
-            } else {
+            }
+            else {
               md_.proj_points_[md_.proj_points_cnt++] = pt_world;
             }
           }
@@ -518,13 +520,15 @@ void SDFMap::raycastProcess() {
       }
       vox_idx = setCacheOccupancy(pt_w, 0);
 
-    } else {
+    }
+    else {
       length = (pt_w - md_.camera_pos_).norm();
 
       if (length > mp_.max_ray_length_) {
         pt_w = (pt_w - md_.camera_pos_) / length * mp_.max_ray_length_ + md_.camera_pos_;
         vox_idx = setCacheOccupancy(pt_w, 0);
-      } else {
+      }
+      else {
         vox_idx = setCacheOccupancy(pt_w, 1);
       }
     }
@@ -542,7 +546,8 @@ void SDFMap::raycastProcess() {
     if (vox_idx != INVALID_IDX) {
       if (md_.flag_rayend_[vox_idx] == md_.raycast_num_) {
         continue;
-      } else {
+      }
+      else {
         md_.flag_rayend_[vox_idx] = md_.raycast_num_;
       }
     }
@@ -560,7 +565,8 @@ void SDFMap::raycastProcess() {
       if (vox_idx != INVALID_IDX) {
         if (md_.flag_traverse_[vox_idx] == md_.raycast_num_) {
           break;
-        } else {
+        }
+        else {
           md_.flag_traverse_[vox_idx] = md_.raycast_num_;
         }
       }
@@ -848,11 +854,10 @@ void SDFMap::depthPoseCallback(const sensor_msgs::ImageConstPtr& img,
         md_.has_odom_ = true;
         md_.update_num_ += 1;
         md_.occ_need_update_ = true;
-    }else{
+    }
+    else{
         md_.occ_need_update_ = false;
     }
-
-    md_.flag_use_depth_fusion = true;
 }
 
 void SDFMap::odomCallback(const nav_msgs::OdometryConstPtr& odom) {
@@ -1281,10 +1286,9 @@ void SDFMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img, const nav_
     cv_ptr->image.copyTo(md_.depth_image_);
 
     md_.occ_need_update_ = true;
-    md_.flag_use_depth_fusion = true;
 
     // reset depth lost flag
-    if(md_.flag_depth_odom_timeout_ == true) md_.flag_depth_odom_timeout_ = false;
+    if(md_.flag_depth_odom_timeout_) md_.flag_depth_odom_timeout_ = false;
 }
 
 void SDFMap::depthCallback(const sensor_msgs::ImageConstPtr& img) {

@@ -172,14 +172,12 @@ public:
   void publishMapInflate(bool all_info = false);
 
     void publishUnknown();
-  void publishDepth();
 
   bool hasDepthObservation();
   bool odomValid();
   void getRegion(Eigen::Vector3d& ori, Eigen::Vector3d& size);
   inline double getResolution();
   Eigen::Vector3d getOrigin();
-  int getVoxelNum();
   bool getOdomDepthTimeout() { return md_.flag_depth_odom_timeout_; }
 
   typedef std::shared_ptr<GridMap> Ptr;
