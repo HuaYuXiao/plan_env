@@ -113,9 +113,6 @@ void SDFMap::initMap(ros::NodeHandle& nh) {
     mp_.map_min_boundary_ = mp_.map_origin_;
     mp_.map_max_boundary_ = mp_.map_origin_ + mp_.map_size_;
 
-    mp_.map_min_idx_ = Eigen::Vector3i::Zero();
-    mp_.map_max_idx_ = mp_.map_voxel_num_ - Eigen::Vector3i::Ones();
-
     // initialize data buffers
 
     int buffer_size = mp_.map_voxel_num_(0) * mp_.map_voxel_num_(1) * mp_.map_voxel_num_(2);
@@ -127,8 +124,10 @@ void SDFMap::initMap(ros::NodeHandle& nh) {
     md_.distance_buffer_ = vector<double>(buffer_size, 10000);
     md_.distance_buffer_neg_ = vector<double>(buffer_size, 10000);
     md_.distance_buffer_all_ = vector<double>(buffer_size, 10000);
-
+    cout << "pass" << endl;
+    // TODO:
     md_.count_hit_and_miss_ = vector<short>(buffer_size, 0);
+    cout << "fail" << endl;
     md_.count_hit_ = vector<short>(buffer_size, 0);
     md_.flag_rayend_ = vector<char>(buffer_size, -1);
     md_.flag_traverse_ = vector<char>(buffer_size, -1);

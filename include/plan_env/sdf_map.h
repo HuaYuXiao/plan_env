@@ -66,18 +66,15 @@ struct matrix_hash : std::unary_function<T, size_t> {
 // constant parameters
 
 struct MappingParameters {
-
     /* map properties */
     Eigen::Vector3d map_origin_, map_size_;
     Eigen::Vector3d map_min_boundary_, map_max_boundary_;  // map range in pos
     Eigen::Vector3i map_voxel_num_;                        // map range in index
-    Eigen::Vector3i map_min_idx_, map_max_idx_;
     Eigen::Vector3d local_update_range_;
     double resolution_, resolution_inv_;
     double obstacles_inflation_;
     string frame_id_;
     int pose_type_;
-    string map_input_;  // 1: pose+depth; 2: odom + cloud
 
     /* camera parameters */
     double cx_, cy_, fx_, fy_;
@@ -212,6 +209,7 @@ public:
     void getSliceESDF(const double height, const double res, const Eigen::Vector4d& range,
                       vector<Eigen::Vector3d>& slice, vector<Eigen::Vector3d>& grad,
                       int sign = 1);  // 1 pos, 2 neg, 3 combined
+
     void initMap(ros::NodeHandle& nh);
 
     void publishMap();

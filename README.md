@@ -10,11 +10,12 @@ The plan_env package, submodule of `Fast-Planner` & `EGO-Planner`
 
 ## Introduction
 
-`sdf_map` is for `Fast-Planner`, `grid_map` is for `EGO-Planner`
+`sdf_map` for `Fast-Planner`, `grid_map` for `EGO-Planner`
 
 
 ## Release Note
 
+- v1.1.1: remove `map_min_idx_` and `map_max_idx_`
 - v1.1.0: replace `camera_q` with `camera_r`
 - v1.0.4: support `depthOdomCallback`
 - v1.0.3: Remove border inflation
