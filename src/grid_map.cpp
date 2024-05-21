@@ -1,8 +1,5 @@
 #include "plan_env/grid_map.h"
 
-// #define current_img_ md_.depth_image_[image_cnt_ & 1]
-// #define last_img_ md_.depth_image_[!(image_cnt_ & 1)]
-
 void GridMap::initMap(ros::NodeHandle &nh){
   /* get parameter */
   double x_size, y_size, z_size;
@@ -118,7 +115,8 @@ void GridMap::initMap(ros::NodeHandle &nh){
 
     sync_image_pose_.reset(new message_filters::Synchronizer<SyncPolicyImagePose>(SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
     sync_image_pose_->registerCallback(boost::bind(&GridMap::depthPoseCallback, this, _1, _2));
-  }else if (mp_.pose_type_ == ODOMETRY){
+  }
+  else if (mp_.pose_type_ == ODOMETRY){
     odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(nh, "/camera/odom", 100, ros::TransportHints().tcpNoDelay()));
 
     sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
@@ -135,7 +133,7 @@ void GridMap::initMap(ros::NodeHandle &nh){
   map_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/grid_map/occupancy", 10);
   map_inf_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/grid_map/occupancy_inflate", 10);
 
-    unknown_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/grid_map/unknown", 10);
+    unknown_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/grid_map/unknown", 10);
 
   md_.occ_need_update_ = false;
   md_.local_updated_ = false;
@@ -151,11 +149,6 @@ void GridMap::initMap(ros::NodeHandle &nh){
 
   md_.flag_depth_odom_timeout_ = false;
   md_.flag_use_depth_fusion = false;
-
-  // rand_noise_ = uniform_real_distribution<double>(-0.2, 0.2);
-  // rand_noise2_ = normal_distribution<double>(0, 0.2);
-  // random_device rd;
-  // eng_ = default_random_engine(rd());
 }
 
 void GridMap::resetBuffer()
@@ -471,7 +464,9 @@ void GridMap::raycastProcess(){
     md_.cache_voxel_.pop();
 
     double log_odds_update =
-        md_.count_hit_[idx_ctns] >= md_.count_hit_and_miss_[idx_ctns] - md_.count_hit_[idx_ctns] ? mp_.prob_hit_log_ : mp_.prob_miss_log_;
+        md_.count_hit_[idx_ctns] >= md_.count_hit_and_miss_[idx_ctns] - md_.count_hit_[idx_ctns] ?
+        mp_.prob_hit_log_ :
+        mp_.prob_miss_log_;
 
     md_.count_hit_[idx_ctns] = md_.count_hit_and_miss_[idx_ctns] = 0;
 
@@ -643,7 +638,8 @@ void GridMap::visCallback(const ros::TimerEvent & /*event*/){
 }
 
 void GridMap::updateOccupancyCallback(const ros::TimerEvent & /*event*/){
-  if (md_.last_occ_update_time_.toSec() < 1.0 ) md_.last_occ_update_time_ = ros::Time::now();
+  if (md_.last_occ_update_time_.toSec() < 1.0 )
+      md_.last_occ_update_time_ = ros::Time::now();
   
   if (!md_.occ_need_update_){
     if ( md_.flag_use_depth_fusion && (ros::Time::now() - md_.last_occ_update_time_).toSec() > mp_.odom_depth_timeout_ ){
@@ -709,7 +705,6 @@ void GridMap::odomCallback(const nav_msgs::OdometryConstPtr &odom){
 }
 
 void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img){
-    cout << "[plan_env] cloudCallback" << endl;
   pcl::PointCloud<pcl::PointXYZ> latest_cloud;
   pcl::fromROSMsg(*img, latest_cloud);
 
@@ -723,7 +718,9 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img){
   if (latest_cloud.points.size() == 0)
     return;
 
-  if (isnan(md_.camera_pos_(0)) || isnan(md_.camera_pos_(1)) || isnan(md_.camera_pos_(2)))
+  if (isnan(md_.camera_pos_(0)) ||
+  isnan(md_.camera_pos_(1)) ||
+  isnan(md_.camera_pos_(2)))
     return;
 
   this->resetBuffer(md_.camera_pos_ - mp_.local_update_range_,
@@ -922,7 +919,6 @@ void GridMap::publishUnknown()
         for (int y = min_cut(1); y <= max_cut(1); ++y)
             for (int z = min_cut(2); z <= max_cut(2); ++z)
             {
-
                 if (md_.occupancy_buffer_[toAddress(x, y, z)] < mp_.clamp_min_log_ - 1e-3)
                 {
                     Eigen::Vector3d pos;
@@ -1008,5 +1004,6 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img, const nav
   md_.flag_use_depth_fusion = true;
 
   // reset depth lost flag
-  if(md_.flag_depth_odom_timeout_) md_.flag_depth_odom_timeout_ = false;
+  if(md_.flag_depth_odom_timeout_)
+      md_.flag_depth_odom_timeout_ = false;
 }

@@ -77,6 +77,7 @@ struct MappingParameters {
     double obstacles_inflation_;
     string frame_id_;
     int pose_type_;
+    string map_input_;  // 1: pose+depth; 2: odom + cloud
 
     /* camera parameters */
     double cx_, cy_, fx_, fy_;
@@ -102,7 +103,7 @@ struct MappingParameters {
     int local_map_margin_;
 
     /* visualization and computation time display */
-    double esdf_slice_height_, visualization_truncate_height_, virtual_ceil_height_, ground_height_;
+    double esdf_slice_height_, visualization_truncate_height_, virtual_ceil_height_, ground_height_, virtual_ceil_yp_, virtual_ceil_yn_;
     bool show_esdf_time_, show_occ_time_;
 
     /* active mapping */
@@ -143,6 +144,7 @@ struct MappingData {
     // odom_depth_timeout_
     ros::Time last_occ_update_time_;
     bool flag_depth_odom_timeout_;
+    bool flag_use_depth_fusion;
 
     // depth image projected point cloud
 
@@ -203,6 +205,8 @@ public:
     inline double getDistance(const Eigen::Vector3i& id);
     inline double getDistWithGradTrilinear(Eigen::Vector3d pos, Eigen::Vector3d& grad);
     void getSurroundPts(const Eigen::Vector3d& pos, Eigen::Vector3d pts[2][2][2], Eigen::Vector3d& diff);
+    // /inline void setLocalRange(Eigen::Vector3d min_pos, Eigen::Vector3d
+    // max_pos);
 
     void updateESDF3d();
     void getSliceESDF(const double height, const double res, const Eigen::Vector4d& range,
@@ -241,6 +245,7 @@ private:
     // get depth image and camera pose
     void depthPoseCallback(const sensor_msgs::ImageConstPtr& img,
                            const geometry_msgs::PoseStampedConstPtr& pose);
+    void extrinsicCallback(const nav_msgs::OdometryConstPtr& odom);
     void depthOdomCallback(const sensor_msgs::ImageConstPtr& img, const nav_msgs::OdometryConstPtr& odom);
     void depthCallback(const sensor_msgs::ImageConstPtr& img);
     void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& img);
@@ -272,14 +277,14 @@ private:
     typedef shared_ptr<message_filters::Synchronizer<SyncPolicyImagePose>> SynchronizerImagePose;
     typedef shared_ptr<message_filters::Synchronizer<SyncPolicyImageOdom>> SynchronizerImageOdom;
 
-    ros::NodeHandle node_;
+    ros::NodeHandle nh;
     shared_ptr<message_filters::Subscriber<sensor_msgs::Image>> depth_sub_;
     shared_ptr<message_filters::Subscriber<geometry_msgs::PoseStamped>> pose_sub_;
     shared_ptr<message_filters::Subscriber<nav_msgs::Odometry>> odom_sub_;
     SynchronizerImagePose sync_image_pose_;
     SynchronizerImageOdom sync_image_odom_;
 
-    ros::Subscriber indep_depth_sub_, indep_odom_sub_, indep_pose_sub_, indep_cloud_sub_;
+    ros::Subscriber indep_depth_sub_, indep_odom_sub_, indep_pose_sub_, indep_cloud_sub_, extrinsic_sub_;
     ros::Publisher map_pub_, esdf_pub_, map_inf_pub_, update_range_pub_;
     ros::Publisher unknown_pub_, depth_pub_;
     ros::Timer occ_timer_, esdf_timer_, vis_timer_;
