@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(plan_env)
 
 set(CMAKE_BUILD_TYPE "Release")
-ADD_COMPILE_OPTIONS(-std=c++14 )
+ADD_COMPILE_OPTIONS(-std=c++14)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
@@ -55,7 +55,8 @@ add_library(plan_env
         src/edt_environment.cpp
         src/raycast.cpp
         src/global_point_sdf.cpp
-    src/grid_map.cpp 
+    src/grid_map.cpp
+        src/map.cpp
 )
 target_link_libraries(plan_env
     ${catkin_LIBRARIES} 
@@ -73,9 +74,7 @@ target_link_libraries(plan_env
 #        ${OCTOMAP_LIBRARIES}
 #)
 
-add_executable(obj_generator
-    src/obj_generator.cpp 
-)
+add_executable(obj_generator src/obj_generator.cpp)
 target_link_libraries(obj_generator 
     ${catkin_LIBRARIES}
         ${OCTOMAP_LIBRARIES}

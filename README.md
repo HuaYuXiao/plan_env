@@ -1,6 +1,6 @@
 # plan_env
 
-The plan_env package, submodule of `Fast-Planner` & `EGO-Planner`
+The plan_env package, submodule of `Fast-Planner` & `EGO-Planner` & `PE-Planner`
 
 ![HitCount](https://img.shields.io/endpoint?url=https%3A%2F%2Fhits.dwyl.com%2FHuaYuXiao%2FFast-Planner.json%3Fcolor%3Dpink)
 ![Static Badge](https://img.shields.io/badge/ROS-noetic-22314E?logo=ros)
@@ -10,11 +10,22 @@ The plan_env package, submodule of `Fast-Planner` & `EGO-Planner`
 
 ## Introduction
 
-`sdf_map` for `Fast-Planner`, `grid_map` for `EGO-Planner`
+### `Fast-Planner`
+
+- [sdf_map.cpp](src%2Fsdf_map.cpp)
+
+### `EGO-Planner`
+
+- [grid_map.cpp](src%2Fgrid_map.cpp)
+
+### `PE-Planner`
+
+- [map.cpp](src%2Fmap.cpp)
 
 
 ## Release Note
 
+- v1.2.0: support `PE-Planner`
 - v1.1.1: remove `map_min_idx_` and `map_max_idx_`
 - v1.1.0: replace `camera_q` with `camera_r`
 - v1.0.4: support `depthOdomCallback`
