@@ -62,11 +62,7 @@ public:
             grid_map_[i] = false;
         }
     }
-    GridMap(string file) {
-        read_map_file(file);
-    }
     void update_grid_map();
-    bool read_map_file(string path);
     Vector3d idx2pos(const Vector3i idx) const {return Vector3d((idx.x() + 0.5) * resolution_, (idx.y() + 0.5) * resolution_, (idx.z() + 0.5) * resolution_);}
     Vector3i pos2idx(const Vector3d pos) const {return Vector3i(pos.x() / resolution_, pos.y() / resolution_, pos.z() / resolution_);}
     bool check_in_map(Vector3i idx) const {
@@ -127,15 +123,6 @@ public:
     const double resolution() const {return resolution_;}
     const Vector3d size() const {return size_;}
     const Vector3i isize() const {return isize_;}
-    void push_obs(ObsCylinder &o) {
-        cylinders_.push_back(o);
-    }
-    void push_obs(ObsRing &o) {
-        rings_.push_back(o);
-    }
-    void push_obs(ObsWall &o) {
-        walls_.push_back(o);
-    }
 };
 
 class DynObs {

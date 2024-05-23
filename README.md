@@ -25,6 +25,7 @@ The plan_env package, submodule of `Fast-Planner` & `EGO-Planner` & `PE-Planner`
 
 ## Release Note
 
+- v1.2.1: remove support for `map_file`
 - v1.2.0: support `PE-Planner`
 - v1.1.1: remove `map_min_idx_` and `map_max_idx_`
 - v1.1.0: replace `camera_q` with `camera_r`
