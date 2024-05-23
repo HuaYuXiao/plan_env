@@ -124,10 +124,9 @@ void SDFMap::initMap(ros::NodeHandle& nh) {
     md_.distance_buffer_ = vector<double>(buffer_size, 10000);
     md_.distance_buffer_neg_ = vector<double>(buffer_size, 10000);
     md_.distance_buffer_all_ = vector<double>(buffer_size, 10000);
-    cout << "pass" << endl;
-    // TODO:
+
     md_.count_hit_and_miss_ = vector<short>(buffer_size, 0);
-    cout << "fail" << endl;
+
     md_.count_hit_ = vector<short>(buffer_size, 0);
     md_.flag_rayend_ = vector<char>(buffer_size, -1);
     md_.flag_traverse_ = vector<char>(buffer_size, -1);
@@ -147,26 +146,26 @@ void SDFMap::initMap(ros::NodeHandle& nh) {
 
     /* init callback */
 
-    depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(nh, "/camera/depth/image_raw", 50));
+//    depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(nh, "/camera/depth/image_raw", 50));
     // 相机外参
     extrinsic_sub_ = nh.subscribe<nav_msgs::Odometry>("/vins_estimator/extrinsic", 10, &SDFMap::extrinsicCallback, this); //sub
 
     if (mp_.pose_type_ == POSE_STAMPED) {
-        pose_sub_.reset(new message_filters::Subscriber<geometry_msgs::PoseStamped>(nh, "/sdf_map/pose", 25));
-
-        sync_image_pose_.reset(new message_filters::Synchronizer<SyncPolicyImagePose>(SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
-        sync_image_pose_->registerCallback(boost::bind(&SDFMap::depthPoseCallback, this, _1, _2));
+//        pose_sub_.reset(new message_filters::Subscriber<geometry_msgs::PoseStamped>(nh, "/sdf_map/pose", 25));
+//
+//        sync_image_pose_.reset(new message_filters::Synchronizer<SyncPolicyImagePose>(SyncPolicyImagePose(100), *depth_sub_, *pose_sub_));
+//        sync_image_pose_->registerCallback(boost::bind(&SDFMap::depthPoseCallback, this, _1, _2));
     }
     else if (mp_.pose_type_ == ODOMETRY) {
-        odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(nh, "/camera/odom", 100));
-
-        sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
-        sync_image_odom_->registerCallback(boost::bind(&SDFMap::depthOdomCallback, this, _1, _2));
+//        odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(nh, "/camera/odom", 100));
+//
+//        sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
+//        sync_image_odom_->registerCallback(boost::bind(&SDFMap::depthOdomCallback, this, _1, _2));
     }
 
     // use odometry and point cloud
-//    indep_cloud_sub_ = nh.subscribe<sensor_msgs::PointCloud2>("/sdf_map/cloud", 10, &SDFMap::cloudCallback, this);
-//    indep_odom_sub_ = nh.subscribe<nav_msgs::Odometry>("/sdf_map/odom", 10, &SDFMap::odomCallback, this);
+    indep_cloud_sub_ = nh.subscribe<sensor_msgs::PointCloud2>("/prometheus/merged_pcl", 10, &SDFMap::cloudCallback, this);
+    indep_odom_sub_ = nh.subscribe<nav_msgs::Odometry>("/prometheus/drone_odom", 10, &SDFMap::odomCallback, this);
 
     occ_timer_ = nh.createTimer(ros::Duration(0.05), &SDFMap::updateOccupancyCallback, this);
     esdf_timer_ = nh.createTimer(ros::Duration(0.05), &SDFMap::updateESDFCallback, this);
@@ -917,8 +916,8 @@ void SDFMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& img) {
         return;
 
     if (isnan(md_.camera_pos_(0)) ||
-    isnan(md_.camera_pos_(1)) ||
-    isnan(md_.camera_pos_(2)))
+        isnan(md_.camera_pos_(1)) ||
+        isnan(md_.camera_pos_(2)))
         return;
 
     this->resetBuffer(md_.camera_pos_ - mp_.local_update_range_,
@@ -948,14 +947,14 @@ void SDFMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& img) {
         Eigen::Vector3d devi = p3d - md_.camera_pos_;
         Eigen::Vector3i inf_pt;
 
-        if (fabs(devi(0)) < mp_.local_update_range_(0) && fabs(devi(1)) < mp_.local_update_range_(1) &&
+        if (fabs(devi(0)) < mp_.local_update_range_(0) &&
+            fabs(devi(1)) < mp_.local_update_range_(1) &&
             fabs(devi(2)) < mp_.local_update_range_(2)) {
 
             /* inflate the point */
             for (int x = -inf_step; x <= inf_step; ++x)
                 for (int y = -inf_step; y <= inf_step; ++y)
                     for (int z = -inf_step_z; z <= inf_step_z; ++z) {
-
                         p3d_inf(0) = pt.x + x * mp_.resolution_;
                         p3d_inf(1) = pt.y + y * mp_.resolution_;
                         p3d_inf(2) = pt.z + z * mp_.resolution_;
