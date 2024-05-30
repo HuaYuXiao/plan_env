@@ -13,21 +13,26 @@ The plan_env package, submodule of `Fast-Planner` & `EGO-Planner` & `PE-Planner`
 If using "depth + (odom / pose)", set `frame_id` of map tp `map`
 If using "pointcloud + odom", set `frame_id` of map tp `base_link`
 
-### `Fast-Planner`
+### A* Search
+
+- [occupy_map.cpp](src%2Foccupy_map.cpp)
+
+### Fast-Planner
 
 - [sdf_map.cpp](src%2Fsdf_map.cpp)
 
-### `EGO-Planner`
+### EGO-Planner
 
 - [grid_map.cpp](src%2Fgrid_map.cpp)
 
-### `PE-Planner`
+### PE-Planner
 
 - [map.cpp](src%2Fmap.cpp)
 
 
 ## Release Note
 
+- v1.3.0: add support for A* Search
 - v1.2.1: remove support for `map_file`
 - v1.2.0: add support for `PE-Planner`
 - v1.1.1: remove `map_min_idx_` and `map_max_idx_`
@@ -41,5 +46,5 @@ If using "pointcloud + odom", set `frame_id` of map tp `base_link`
 ## Installation
 
 ```bash
-catkin_make install --source src/plan_env --build build/plan_env
+catkin_make install --source Planning/plan_env --build Planning/plan_env/build
 ```

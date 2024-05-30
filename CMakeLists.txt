@@ -42,7 +42,7 @@ include_directories(
     ${OpenCV_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
         ${OCTOMAP_INCLUDE_DIRS}
-        $ENV{HOME}/mapping_ws/devel/include/
+        $ENV{HOME}/EasonDrone/Modules/common/include
         ${sdf_tools_INCLUDE_DIRS}
 )
 
@@ -50,6 +50,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 link_libraries(${OCTOMAP_LIBRARIES})
 
 add_library(plan_env
+        src/occupy_map.cpp
         src/sdf_map.cpp
         src/obj_predictor.cpp
         src/edt_environment.cpp
@@ -66,13 +67,12 @@ target_link_libraries(plan_env
         ${Boost_LIBRARIES}
 )
 
-#add_executable(read_pub_ot
-#        src/read_pub_ot.cpp)
-#target_link_libraries(read_pub_ot
-#        ${catkin_LIBRARIES}
-#        ${Boost_LIBRARIES}
-#        ${OCTOMAP_LIBRARIES}
-#)
+add_executable(read_pub_ot src/read_pub_ot.cpp)
+target_link_libraries(read_pub_ot
+        ${catkin_LIBRARIES}
+        ${Boost_LIBRARIES}
+        ${OCTOMAP_LIBRARIES}
+)
 
 add_executable(obj_generator src/obj_generator.cpp)
 target_link_libraries(obj_generator 
