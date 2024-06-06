@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>plan_env</name>
-  <version>1.2.1</version>
+  <version>1.3.0</version>
   <description>
     The plan_env package
   </description>
+
   <author email="iszhouxin@zju.edu.cn">iszhouxin</author>
-  <maintainer email="hyx020222@gmail.com">Eason Hua</maintainer>
+  <maintainer email="12010508@mail.sustech.edu.cn">Eason Hua</maintainer>
+
   <license>GPLv3</license>
 
   <buildtool_depend>catkin</buildtool_depend>
@@ -16,6 +18,7 @@
   <depend>std_msgs</depend>
   <depend>tf</depend>
   <depend>octomap</depend>
+  <depend>easondrone_msgs</depend>
 
   <build_depend>sdf_tools</build_depend>
 

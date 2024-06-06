@@ -5,8 +5,6 @@ set(CMAKE_BUILD_TYPE "Release")
 ADD_COMPILE_OPTIONS(-std=c++14)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
-
-set(CMAKE_PREFIX_PATH /opt/ros/noetic;/usr/local;$ENV{HOME}/Prometheus/devel/;$ENV{HOME}/planner_ws/devel;$ENV{HOME}/mapping_ws/devel;$ENV{HOME}/mapping_ws/devel_isolated;$ENV{HOME}/tool_ws/devel)
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 find_package(OpenCV REQUIRED)
@@ -20,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
         tf
         sdf_tools
+        easondrone_msgs
 )
 find_package(Eigen3 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
@@ -42,7 +41,6 @@ include_directories(
     ${OpenCV_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
         ${OCTOMAP_INCLUDE_DIRS}
-        $ENV{HOME}/EasonDrone/Modules/common/include
         ${sdf_tools_INCLUDE_DIRS}
 )
 
@@ -50,12 +48,10 @@ link_directories(${PCL_LIBRARY_DIRS})
 link_libraries(${OCTOMAP_LIBRARIES})
 
 add_library(plan_env
-        src/occupy_map.cpp
         src/sdf_map.cpp
         src/obj_predictor.cpp
         src/edt_environment.cpp
         src/raycast.cpp
-        src/global_point_sdf.cpp
     src/grid_map.cpp
         src/map.cpp
 )

@@ -32,7 +32,6 @@ If using "pointcloud + odom", set `frame_id` of map tp `base_link`
 
 ## Release Note
 
-- v1.3.0: add support for A* Search
 - v1.2.1: remove support for `map_file`
 - v1.2.0: add support for `PE-Planner`
 - v1.1.1: remove `map_min_idx_` and `map_max_idx_`
