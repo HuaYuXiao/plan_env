@@ -9,20 +9,25 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
     /* get parameter */
     double x_size, y_size, z_size;
+    // 地图分辨率
     node_.param("grid_map/resolution", mp_.resolution_, -1.0);
     node_.param("grid_map/map_size_x", x_size, -1.0);
     node_.param("grid_map/map_size_y", y_size, -1.0);
     node_.param("grid_map/map_size_z", z_size, -1.0);
+    /* 地图更新距离，当传入的点云数据超过范围，会被舍弃 */
     node_.param("grid_map/local_update_range_x", mp_.local_update_range_(0), -1.0);
     node_.param("grid_map/local_update_range_y", mp_.local_update_range_(1), -1.0);
     node_.param("grid_map/local_update_range_z", mp_.local_update_range_(2), -1.0);
+    //点云膨胀距离或者点云碰撞
     node_.param("grid_map/obstacles_inflation", mp_.obstacles_inflation_, -1.0);
 
+    /* 相机内参 */
     node_.param("grid_map/fx", mp_.fx_, -1.0);
     node_.param("grid_map/fy", mp_.fy_, -1.0);
     node_.param("grid_map/cx", mp_.cx_, -1.0);
     node_.param("grid_map/cy", mp_.cy_, -1.0);
 
+    /* 使用深度图，深度滤波范围 */
     node_.param("grid_map/use_depth_filter", mp_.use_depth_filter_, true);
     node_.param("grid_map/depth_filter_tolerance", mp_.depth_filter_tolerance_, -1.0);
     node_.param("grid_map/depth_filter_maxdist", mp_.depth_filter_maxdist_, -1.0);
@@ -31,6 +36,7 @@ void GridMap::initMap(ros::NodeHandle &nh)
     node_.param("grid_map/k_depth_scaling_factor", mp_.k_depth_scaling_factor_, -1.0);
     node_.param("grid_map/skip_pixel", mp_.skip_pixel_, -1);
 
+    /*占据可能性，raycasting 栅格地图*/
     node_.param("grid_map/p_hit", mp_.p_hit_, 0.70);
     node_.param("grid_map/p_miss", mp_.p_miss_, 0.35);
     node_.param("grid_map/p_min", mp_.p_min_, 0.12);
@@ -39,10 +45,13 @@ void GridMap::initMap(ros::NodeHandle &nh)
     node_.param("grid_map/min_ray_length", mp_.min_ray_length_, -0.1);
     node_.param("grid_map/max_ray_length", mp_.max_ray_length_, -0.1);
 
+    /* 设定虚拟天花板，*/
     node_.param("grid_map/visualization_truncate_height", mp_.visualization_truncate_height_, 999.0);
     node_.param("grid_map/virtual_ceil_height", mp_.virtual_ceil_height_, -0.1);
 
+    //显示栅格地图重要步骤计算时间
     node_.param("grid_map/show_occ_time", mp_.show_occ_time_, false);
+    // 针对深度相机，一种是Pose，另一种采用odom
     node_.param("grid_map/pose_type", mp_.pose_type_, 1);
 
     node_.param("grid_map/frame_id", mp_.frame_id_, string("world"));
@@ -88,6 +97,7 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
     md_.proj_points_.resize(640 * 480 / mp_.skip_pixel_ / mp_.skip_pixel_);
     md_.proj_points_cnt = 0;
+    /* 相机外参 */
     md_.cam2body_ << 0.0, 0.0, 1.0, 0.0,
             -1.0, 0.0, 0.0, 0.0,
             0.0, -1.0, 0.0, 0.0,
@@ -118,14 +128,17 @@ void GridMap::initMap(ros::NodeHandle &nh)
     }
 
     // use odometry and point cloud
+    /*点云数据需要位于惯性系下*/
 //    indep_cloud_sub_ = node_.subscribe<sensor_msgs::PointCloud2>
 //            ("/grid_map/cloud", 10, &GridMap::cloudCallback, this);
 //    indep_odom_sub_ = node_.subscribe<nav_msgs::Odometry>
 //            ("/grid_map/odom", 10, &GridMap::odomCallback, this);
 
+    /* 更新栅格地图并显示*/
     occ_timer_ = node_.createTimer(ros::Duration(0.05), &GridMap::updateOccupancyCallback, this);
     vis_timer_ = node_.createTimer(ros::Duration(0.05), &GridMap::visCallback, this);
 
+    /* 发布膨胀和未膨胀的栅格化点云*/
     map_pub_ = node_.advertise<sensor_msgs::PointCloud2>
             ("/grid_map/occupancy", 10);
     map_inf_pub_ = node_.advertise<sensor_msgs::PointCloud2>
@@ -704,6 +717,7 @@ void GridMap::depthPoseCallback(const sensor_msgs::ImageConstPtr &img,
     // std::cout << "depth: " << md_.depth_image_.cols << ", " << md_.depth_image_.rows << std::endl;
 
     /* get pose */
+    /* 如果可以获得相机在惯性系下的位姿，则可直接得到*/
     md_.camera_pos_(0) = pose->pose.position.x;
     md_.camera_pos_(1) = pose->pose.position.y;
     md_.camera_pos_(2) = pose->pose.position.z;
@@ -732,6 +746,7 @@ void GridMap::odomCallback(const nav_msgs::OdometryConstPtr &odom)
     md_.has_odom_ = true;
 }
 
+/*点云数据需要位于惯性系下，这里输入是lidar下的点云，先转换到机体再转换到惯性系下*/
 void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
 {
 
@@ -988,6 +1003,7 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img,
                                 const nav_msgs::OdometryConstPtr &odom)
 {
     /* get pose */
+    /* 无法直接获得相机在惯性系下的位姿，通过odom间接获得*/
     Eigen::Quaterniond body_q = Eigen::Quaterniond(odom->pose.pose.orientation.w,
                                                    odom->pose.pose.orientation.x,
                                                    odom->pose.pose.orientation.y,
@@ -995,11 +1011,13 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img,
     Eigen::Matrix3d body_r_m = body_q.toRotationMatrix();
     Eigen::Matrix4d body2world;
     body2world.block<3, 3>(0, 0) = body_r_m;
+    /* 位置平移量 */
     body2world(0, 3) = odom->pose.pose.position.x;
     body2world(1, 3) = odom->pose.pose.position.y;
     body2world(2, 3) = odom->pose.pose.position.z;
     body2world(3, 3) = 1.0;
 
+    /*获得从相机->机体->惯性系的旋转矩阵*/
     Eigen::Matrix4d cam_T = body2world * md_.cam2body_;
     md_.camera_pos_(0) = cam_T(0, 3);
     md_.camera_pos_(1) = cam_T(1, 3);

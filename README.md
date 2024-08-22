@@ -7,11 +7,6 @@
 
 The plan_env package, submodule of `Fast-Planner` & `EGO-Planner` & `PE-Planner`
 
-## Introduction
-
-If using "depth + (odom / pose)", set `frame_id` of map tp `map`
-If using "pointcloud + odom", set `frame_id` of map tp `base_link`
-
 ### A* Search
 
 - [occupy_map.cpp](src%2Foccupy_map.cpp)
@@ -32,5 +27,5 @@ If using "pointcloud + odom", set `frame_id` of map tp `base_link`
 
 ```bash
 cd ~/EasonDrone
-catkin_make install --source Reconstruction/plan_env --build Reconstruction/plan_env/build
+catkin_make --source Reconstruction/plan_env --build Reconstruction/plan_env/build
 ```
