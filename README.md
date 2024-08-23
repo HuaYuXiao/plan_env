@@ -19,6 +19,24 @@ The plan_env package, submodule of `Fast-Planner` & `EGO-Planner` & `PE-Planner`
 
 - [grid_map.cpp](src%2Fgrid_map.cpp)
 
+默认是按照深度相机方案对环境进行重建，但如果是激光雷达方案，请手动修改`grid_map.cpp`中的这部分代码：
+
+将122行到127行注释：
+
+```cpp
+odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(node_, "/grid_map/odom", 100));
+sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
+sync_image_odom_->registerCallback(boost::bind(&GridMap::depthOdomCallback, this, _1, _2));
+```
+
+将132行到135行取消注释：
+
+```cpp
+odom_sub_.reset(new message_filters::Subscriber<nav_msgs::Odometry>(node_, "/grid_map/odom", 100));
+sync_image_odom_.reset(new message_filters::Synchronizer<SyncPolicyImageOdom>(SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
+sync_image_odom_->registerCallback(boost::bind(&GridMap::depthOdomCallback, this, _1, _2));
+```
+
 ### PE-Planner
 
 - [map.cpp](src%2Fmap.cpp)
