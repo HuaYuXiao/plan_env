@@ -44,6 +44,6 @@ sync_image_odom_->registerCallback(boost::bind(&GridMap::depthOdomCallback, this
 ## Installation
 
 ```bash
-cd ~/EasonDrone
-catkin_make --source Reconstruction/plan_env --build Reconstruction/plan_env/build
+git clone https://gitee.com/hyx020222/plan_env.git ~/easondrone_ws/reconstruct/plan_env
+cd ~/easondrone_ws && catkin_make --source reconstruct/plan_env --build reconstruct/plan_env/build
 ```
