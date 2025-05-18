@@ -1,27 +1,22 @@
-/**
-* This file is part of Fast-Planner.
-*
-* Copyright 2019 Boyu Zhou, Aerial Robotics Group, Hong Kong University of Science and Technology, <uav.ust.hk>
-* Developed by Boyu Zhou <bzhouai at connect dot ust dot hk>, <uv dot boyuzhou at gmail dot com>
-* for more information see <https://github.com/HKUST-Aerial-Robotics/Fast-Planner>.
-* If you use this code, please cite the respective publications as
-* listed on the above website.
-*
-* Fast-Planner is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* Fast-Planner is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with Fast-Planner. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
+/*⭐⭐⭐******************************************************************⭐⭐⭐*
+ * Author       :    Chen Feng <cfengag at connect dot ust dot hk>, UAV Group, ECE, HKUST.
+ * Homepage     :    https://chen-albert-feng.github.io/AlbertFeng.github.io/
+ * Date         :    Apr. 2024
+ * E-mail       :    cfengag at connect dot ust dot hk.
+ * Description  :    This file is the main algorithm of classical Ray Casting and
+ *                   the proposed Bidirectional Ray Casting (BiRC) in FC-Planner. 
+ * License      :    GNU General Public License <http://www.gnu.org/licenses/>.
+ * Project      :    FC-Planner is free software: you can redistribute it and/or 
+ *                   modify it under the terms of the GNU Lesser General Public 
+ *                   License as published by the Free Software Foundation, 
+ *                   either version 3 of the License, or (at your option) any 
+ *                   later version.
+ *                   FC-Planner is distributed in the hope that it will be useful,
+ *                   but WITHOUT ANY WARRANTY; without even the implied warranty 
+ *                   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ *                   See the GNU General Public License for more details.
+ * Website      :    https://hkust-aerial-robotics.github.io/FC-Planner/
+ *⭐⭐⭐*****************************************************************⭐⭐⭐*/
 
 #include <Eigen/Eigen>
 #include <cmath>
@@ -49,7 +44,6 @@ double intbound(double s, double ds) {
 
 void Raycast(const Eigen::Vector3d& start, const Eigen::Vector3d& end, const Eigen::Vector3d& min,
              const Eigen::Vector3d& max, int& output_points_cnt, Eigen::Vector3d* output) {
-  //    std::cout << start << ' ' << end << std::endl;
   // From "A Fast Voxel Traversal Algorithm for Ray Tracing"
   // by John Amanatides and Andrew Woo, 1987
   // <http://www.cse.yorku.ca/~amana/research/grid.pdf>
@@ -152,7 +146,6 @@ void Raycast(const Eigen::Vector3d& start, const Eigen::Vector3d& end, const Eig
 
 void Raycast(const Eigen::Vector3d& start, const Eigen::Vector3d& end, const Eigen::Vector3d& min,
              const Eigen::Vector3d& max, std::vector<Eigen::Vector3d>* output) {
-  //    std::cout << start << ' ' << end << std::endl;
   // From "A Fast Voxel Traversal Algorithm for Ray Tracing"
   // by John Amanatides and Andrew Woo, 1987
   // <http://www.cse.yorku.ca/~amana/research/grid.pdf>
@@ -317,6 +310,261 @@ bool RayCaster::step(Eigen::Vector3d& ray_pt) {
   // {
   //   return false;
   // }
+
+  // tMaxX stores the t-value at which we cross a cube boundary along the
+  // X axis, and similarly for Y and Z. Therefore, choosing the least tMax
+  // chooses the closest cube boundary. Only the first case of the four
+  // has been commented in detail.
+  if (tMaxX_ < tMaxY_) {
+    if (tMaxX_ < tMaxZ_) {
+      // Update which cube we are now in.
+      x_ += stepX_;
+      // Adjust tMaxX to the next X-oriented boundary crossing.
+      tMaxX_ += tDeltaX_;
+    } else {
+      z_ += stepZ_;
+      tMaxZ_ += tDeltaZ_;
+    }
+  } else {
+    if (tMaxY_ < tMaxZ_) {
+      y_ += stepY_;
+      tMaxY_ += tDeltaY_;
+    } else {
+      z_ += stepZ_;
+      tMaxZ_ += tDeltaZ_;
+    }
+  }
+
+  return true;
+}
+
+void RayCaster::setParams(const double& res, const Eigen::Vector3d& origin) {
+  resolution_ = res;
+  half_ = Eigen::Vector3d(0.5, 0.5, 0.5);
+  offset_ = half_ - origin / resolution_;
+}
+
+bool RayCaster::input(const Eigen::Vector3d& start, const Eigen::Vector3d& end) {
+  start_ = start / resolution_;
+  end_ = end / resolution_;
+
+  x_ = (int)std::floor(start_.x());
+  y_ = (int)std::floor(start_.y());
+  z_ = (int)std::floor(start_.z());
+  endX_ = (int)std::floor(end_.x());
+  endY_ = (int)std::floor(end_.y());
+  endZ_ = (int)std::floor(end_.z());
+  direction_ = (end_ - start_);
+  maxDist_ = direction_.squaredNorm();
+
+  // Break out direction vector.
+  dx_ = endX_ - x_;
+  dy_ = endY_ - y_;
+  dz_ = endZ_ - z_;
+
+  // Direction to increment x,y,z when stepping.
+  stepX_ = (int)signum((int)dx_);
+  stepY_ = (int)signum((int)dy_);
+  stepZ_ = (int)signum((int)dz_);
+
+  // See description above. The initial values depend on the fractional
+  // part of the origin.
+  tMaxX_ = intbound(start_.x(), dx_);
+  tMaxY_ = intbound(start_.y(), dy_);
+  tMaxZ_ = intbound(start_.z(), dz_);
+
+  // The change in t when taking a step (always positive).
+  tDeltaX_ = ((double)stepX_) / dx_;
+  tDeltaY_ = ((double)stepY_) / dy_;
+  tDeltaZ_ = ((double)stepZ_) / dz_;
+
+  dist_ = 0;
+
+  step_num_ = 0;
+
+  // Avoids an infinite loop.
+  if (stepX_ == 0 && stepY_ == 0 && stepZ_ == 0)
+    return false;
+  else
+    return true;
+}
+
+bool RayCaster::biInput(const Eigen::Vector3d& start, const Eigen::Vector3d& end)
+{
+  start_ = start / resolution_;
+  inter_ = (0.5*(start+end)) / resolution_;
+  end_ = end / resolution_;
+  
+  x_ = (int)std::floor(start_.x());
+  y_ = (int)std::floor(start_.y());
+  z_ = (int)std::floor(start_.z());
+  interX_ = (int)std::floor(inter_.x());
+  interY_ = (int)std::floor(inter_.y());
+  interZ_ = (int)std::floor(inter_.z());
+  endX_ = (int)std::floor(end_.x());
+  endY_ = (int)std::floor(end_.y());
+  endZ_ = (int)std::floor(end_.z());
+  dir_p = (inter_ - start_);
+  dir_n = (inter_ - end_);
+  maxDp = dir_p.squaredNorm();
+  maxDn = dir_n.squaredNorm();
+
+  dx_p = interX_ - x_; dy_p = interY_ - y_; dz_p = interZ_ - z_;
+  dx_n = interX_ - endX_; dy_n = interY_ - endY_; dz_n = interZ_ - endZ_;
+
+  stepXp = (int)signum((int)dx_p);
+  stepYp = (int)signum((int)dy_p);
+  stepZp = (int)signum((int)dz_p);
+  stepXn = (int)signum((int)dx_n);
+  stepYn = (int)signum((int)dy_n);
+  stepZn = (int)signum((int)dz_n);
+
+  tMaxXp = intbound(start_.x(), dx_p);
+  tMaxYp = intbound(start_.y(), dy_p);
+  tMaxZp = intbound(start_.z(), dz_p);
+  tMaxXn = intbound(end_.x(), dx_n);
+  tMaxYn = intbound(end_.y(), dy_n);
+  tMaxZn = intbound(end_.z(), dz_n);
+
+  tDeltaXp = ((double)stepXp) / dx_p;
+  tDeltaYp = ((double)stepYp) / dy_p;
+  tDeltaZp = ((double)stepZp) / dz_p;
+  tDeltaXn = ((double)stepXn) / dx_n;
+  tDeltaYn = ((double)stepYn) / dy_n;
+  tDeltaZn = ((double)stepZn) / dz_n;
+
+  dist_ = 0;
+
+  step_num_ = 0;
+
+  if (stepXp == 0 && stepYp == 0 && stepZp == 0)
+    return false;
+  else
+    return true;
+}
+
+bool RayCaster::nextId(Eigen::Vector3i& idx) {
+  auto tmp = Eigen::Vector3d(x_, y_, z_);
+  idx = (tmp + offset_).cast<int>();
+
+  if (x_ == endX_ && y_ == endY_ && z_ == endZ_) {
+    return false;
+  }
+
+  // tMaxX stores the t-value at which we cross a cube boundary along the
+  // X axis, and similarly for Y and Z. Therefore, choosing the least tMax
+  // chooses the closest cube boundary. Only the first case of the four
+  // has been commented in detail.
+  if (tMaxX_ < tMaxY_) {
+    if (tMaxX_ < tMaxZ_) {
+      // Update which cube we are now in.
+      x_ += stepX_;
+      // Adjust tMaxX to the next X-oriented boundary crossing.
+      tMaxX_ += tDeltaX_;
+    } else {
+      z_ += stepZ_;
+      tMaxZ_ += tDeltaZ_;
+    }
+  } else {
+    if (tMaxY_ < tMaxZ_) {
+      y_ += stepY_;
+      tMaxY_ += tDeltaY_;
+    } else {
+      z_ += stepZ_;
+      tMaxZ_ += tDeltaZ_;
+    }
+  }
+
+  return true;
+}
+
+bool RayCaster::biNextId(Eigen::Vector3i& idx, Eigen::Vector3i& idxR)
+{
+  bool pflag = true, nflag = true;
+  
+  auto tmp = Eigen::Vector3d(x_, y_, z_);
+  idx = (tmp + offset_).cast<int>();
+  
+  if (x_ == interX_ && y_ == interY_ && z_ == interZ_)
+    pflag = false;
+  
+  if (pflag == true)
+  {
+  if (tMaxXp < tMaxYp)
+  {
+    if (tMaxXp < tMaxZp)
+    {
+      x_ += stepXp;
+      tMaxXp += tDeltaXp;
+    }
+    else
+    {
+      z_ += stepZp;
+      tMaxZp += tDeltaZp;
+    }
+  }
+  else
+  {
+    if (tMaxYp < tMaxZp) 
+    {
+      y_ += stepYp;
+      tMaxYp += tDeltaYp;
+    } else 
+    {
+      z_ += stepZp;
+      tMaxZp += tDeltaZp;
+    }
+  }
+  }
+
+  auto tmpR = Eigen::Vector3d(endX_, endY_, endZ_);
+  idxR = (tmpR + offset_).cast<int>();
+
+  if (endX_ == interX_ && endY_ == interY_ && endZ_ == interZ_)
+    nflag = false;
+  
+  if (nflag == true)
+  {
+  if (tMaxXn < tMaxYn)
+  {
+    if (tMaxXn < tMaxZn)
+    {
+      endX_ += stepXn;
+      tMaxXn += tDeltaXn;
+    }
+    else
+    {
+      endZ_ += stepZn;
+      tMaxZn += tDeltaZn;
+    }
+  }
+  else
+  {
+    if (tMaxYn < tMaxZn) 
+    {
+      endY_ += stepYn;
+      tMaxYn += tDeltaYn;
+    } else 
+    {
+      endZ_ += stepZn;
+      tMaxZn += tDeltaZn;
+    }
+  }
+  }
+
+  if (pflag == false && nflag == false)
+    return false;
+  else
+    return true;
+}
+
+bool RayCaster::nextPos(Eigen::Vector3d& pos) {
+  auto tmp = Eigen::Vector3d(x_, y_, z_);
+  pos = (tmp + half_) * resolution_;
+
+  if (x_ == endX_ && y_ == endY_ && z_ == endZ_) {
+    return false;
+  }
 
   // tMaxX stores the t-value at which we cross a cube boundary along the
   // X axis, and similarly for Y and Z. Therefore, choosing the least tMax

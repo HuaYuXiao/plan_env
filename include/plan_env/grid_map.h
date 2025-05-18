@@ -23,24 +23,13 @@
 #include <message_filters/time_synchronizer.h>
 
 #include <plan_env/raycast.h>
+#include <plan_env/matrix_hash.h>
 
 #define logit(x) (log((x) / (1 - (x))))
 
 using namespace std;
 
-// voxel hashing
-template <typename T>
-struct matrix_hash : std::unary_function<T, size_t> {
-    std::size_t operator()(T const& matrix) const {
-        size_t seed = 0;
-        for (size_t i = 0; i < matrix.size(); ++i) {
-            auto elem = *(matrix.data() + i);
-            seed ^= std::hash<typename T::Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        return seed;
-    }
-};
-
+namespace ego_planner {
 // constant parameters
 
 struct MappingParameters {
@@ -396,4 +385,5 @@ inline void GridMap::inflatePoint(const Eigen::Vector3i& pt, int step, vector<Ei
 
 inline double GridMap::getResolution() { return mp_.resolution_; }
 
+} // namespace ego_planner
 #endif

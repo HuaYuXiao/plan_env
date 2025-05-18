@@ -1,5 +1,6 @@
 #include "plan_env/grid_map.h"
 
+namespace ego_planner {
 // #define current_img_ md_.depth_image_[image_cnt_ & 1]
 // #define last_img_ md_.depth_image_[!(image_cnt_ & 1)]
 
@@ -1037,3 +1038,4 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img,
 }
 
 // GridMap
+} // namespace ego_planner

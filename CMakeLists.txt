@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(plan_env)
 
 set(CMAKE_BUILD_TYPE "Release")
-ADD_COMPILE_OPTIONS(-std=c++11 )
-ADD_COMPILE_OPTIONS(-std=c++14 )
+set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_options(-faligned-new)
 
 find_package(OpenCV REQUIRED)
 
@@ -41,7 +43,11 @@ link_directories(${PCL_LIBRARY_DIRS})
 
 add_library( plan_env
         src/grid_map.cpp
+    src/sdf_map.cpp 
+    src/obj_predictor.cpp 
+    src/edt_environment.cpp 
         src/raycast.cpp
+    src/map_ros.cpp
 )
 target_link_libraries( plan_env
         ${catkin_LIBRARIES}
